@@ -20,6 +20,41 @@ The software centralizes customer registration, Point-of-Sale (POS) transaction 
 
 ---
 
+## Live Evaluation & Interactive Access
+
+Examiners and reviewers can access the live running application directly in a browser without installing Python or configuring a database locally:
+
+- **Run Live Directly from GitHub (GitHub Codespaces):**
+  Open **[Launch Live Workspace in GitHub Codespaces](https://codespaces.new/Ahamefuna/ui-ventures-retail-crm)** — the repository's [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) automatically installs dependencies, applies migrations, runs `seed_uiventures`, starts the Django server on port `8000`, and opens the live application in your browser.
+- **One-Click Cloud Hosting (Render):**
+  Deploy a standalone public HTTPS instance directly from this repository via **[Deploy Live Instance on Render](https://render.com/deploy?repo=https://github.com/Ahamefuna/ui-ventures-retail-crm)** using [`render.yaml`](render.yaml) and [`build.sh`](build.sh).
+
+*(Use any evaluation account listed in [Section 8](#8-seeded-dataset--demo-accounts) with password `Password123!`.)*
+
+---
+
+## Application Interface Preview
+
+### Institutional Sign-In Portal
+![UI Ventures Retail CRM Login Portal](docs/screenshots/01_login_portal.png)
+
+### Management Dashboard (KPIs, Monthly Revenue & RFM Distribution)
+![Management Dashboard](docs/screenshots/02_management_dashboard.png)
+
+### Point of Sale (POS) Checkout & Loyalty Point Redemption
+![POS Checkout Terminal](docs/screenshots/03_pos_checkout.png)
+
+### Automated Quintile RFM Segmentation & Retention Matrix
+![RFM Customer Segmentation](docs/screenshots/04_rfm_segmentation.png)
+
+### Customer 360° Profile, RFM Breakdown & Loyalty Ledger
+![Customer Profile](docs/screenshots/05_customer_profile.png)
+
+### Customer Self-Service Portal (`student@ui.edu.ng`)
+![Customer Self-Service Portal](docs/screenshots/06_customer_portal.png)
+
+---
+
 ## 2. System Architecture
 
 The application implements a three-tier client–server architecture using Django's Model–View–Template (MVT) pattern:
