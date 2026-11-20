@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>403 Access Denied — UI Ventures Retail CRM</title>
+  <link rel="icon" type="image/png" href="{% static 'crm/img/ui_crest.png' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'crm/css/styles.css' %}?v=20261120" />
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100 p-3">
+  <div class="uiv-card p-4 p-md-5 text-center" style="max-width: 460px; border-top: 4px solid var(--ui-crimson);">
+    <div style="width: 52px; height: 66px; margin: 0 auto 1rem;">
+      <img src="{% static 'crm/img/ui_crest.png' %}" alt="University of Ibadan Crest" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+    </div>
+    <h1 class="h4 fw-bold mb-2" style="color: var(--ui-navy);">403 — Access Denied</h1>
+    <p class="small text-muted mb-4">
+      Your assigned account role does not have authorization to view this section.
+      Contact the UI Ventures Systems Administrator if you require additional permissions.
+    </p>
+    <a href="{% url 'crm:home' %}" class="btn btn-uiv-primary px-4">
+      Return to Workspace
+    </a>
+  </div>
+</body>
+</html>

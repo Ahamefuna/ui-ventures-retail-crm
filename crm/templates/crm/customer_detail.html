@@ -1,0 +1,331 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}{{ customer.full_name }} — Customer Profile{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <div class="uiv-breadcrumb">
+      <a href="{% url 'crm:customers' %}">Customer Directory</a> / <span class="font-mono-code">{{ customer.cust_code }}</span>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <h1 class="uiv-page-title">{{ customer.full_name }}</h1>
+      <span class="uiv-badge badge-tier-neutral">{{ customer.get_category_display }}</span>
+    </div>
+    <p class="uiv-page-subtitle">
+      {{ customer.phone }}
+      {% if customer.email %} &middot; {{ customer.email }}{% endif %}
+      &middot; Registered {{ customer.created_at|date:"d M Y" }}
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+      <i class="bi bi-pencil"></i> Edit Profile
+    </button>
+    {% if request.user.is_manager_or_admin %}
+      <button type="button" class="btn btn-uiv-steel" data-bs-toggle="modal" data-bs-target="#adjustPointsModal">
+        <i class="bi bi-sliders"></i> Adjust Points
+      </button>
+    {% endif %}
+    <a href="{% url 'crm:pos' %}" class="btn btn-uiv-confirm">
+      <i class="bi bi-cart-plus"></i> New Sale
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-green">
+      <div class="uiv-kpi-label">Loyalty Balance</div>
+      <div class="uiv-kpi-value" style="color: var(--uiv-green);">{{ customer.loyalty_points }} pts</div>
+      <div class="uiv-kpi-meta">Discount value: {{ customer.loyalty_naira_value|naira }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-navy">
+      <div class="uiv-kpi-label">Lifetime Net Spend</div>
+      <div class="uiv-kpi-value">{{ total_spend|naira }}</div>
+      <div class="uiv-kpi-meta">{{ txn_count }} completed transaction{{ txn_count|pluralize }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-steel">
+      <div class="uiv-kpi-label">Total Discounts Redeemed</div>
+      <div class="uiv-kpi-value">{{ total_discount|naira }}</div>
+      <div class="uiv-kpi-meta">Cumulative loyalty savings</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-amber">
+      <div class="uiv-kpi-label">RFM Segment</div>
+      <div class="my-2">
+        {% if customer.rfm_segment %}
+          <span class="uiv-badge {{ customer.rfm_segment.tier_label|tier_badge_class }}">
+            {{ customer.rfm_segment.tier_label }}
+          </span>
+        {% else %}
+          <span class="uiv-badge badge-tier-neutral">Unsegmented</span>
+        {% endif %}
+      </div>
+      {% if customer.rfm_segment %}
+        <div class="uiv-kpi-meta">
+          Code <strong class="font-mono-code">{{ customer.rfm_segment.rfm_code }}</strong> &middot; Last purchase {{ customer.rfm_segment.recency_days }}d ago
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- RFM Breakdown -->
+{% if customer.rfm_segment %}
+<div class="uiv-card mb-4">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">RFM Score Breakdown</h2>
+    <div class="d-flex align-items-center gap-2">
+      <span class="rfm-code-chip">{{ customer.rfm_segment.rfm_code }}</span>
+      <span class="small text-muted">Updated {{ customer.rfm_segment.updated_at|date:"d M Y, H:i" }}</span>
+    </div>
+  </div>
+  <div class="uiv-card-body">
+    <div class="row g-3 align-items-center">
+      <div class="col-12 col-sm-4 col-md-2">
+        <div class="d-flex justify-content-between small fw-semibold mb-1">
+          <span class="text-muted">Recency (R)</span>
+          <span>{{ customer.rfm_segment.r_score }}/5</span>
+        </div>
+        <div class="uiv-progress mb-1">
+          <div class="h-100" style="width: {% widthratio customer.rfm_segment.r_score 5 100 %}%; background-color: var(--uiv-steel);"></div>
+        </div>
+        <div class="small text-muted">{{ customer.rfm_segment.recency_days }} days elapsed</div>
+      </div>
+
+      <div class="col-12 col-sm-4 col-md-2">
+        <div class="d-flex justify-content-between small fw-semibold mb-1">
+          <span class="text-muted">Frequency (F)</span>
+          <span>{{ customer.rfm_segment.f_score }}/5</span>
+        </div>
+        <div class="uiv-progress mb-1">
+          <div class="h-100" style="width: {% widthratio customer.rfm_segment.f_score 5 100 %}%; background-color: var(--uiv-green);"></div>
+        </div>
+        <div class="small text-muted">{{ customer.rfm_segment.frequency_count }} orders</div>
+      </div>
+
+      <div class="col-12 col-sm-4 col-md-2">
+        <div class="d-flex justify-content-between small fw-semibold mb-1">
+          <span class="text-muted">Monetary (M)</span>
+          <span>{{ customer.rfm_segment.m_score }}/5</span>
+        </div>
+        <div class="uiv-progress mb-1">
+          <div class="h-100" style="width: {% widthratio customer.rfm_segment.m_score 5 100 %}%; background-color: var(--uiv-navy);"></div>
+        </div>
+        <div class="small text-muted">{{ customer.rfm_segment.monetary_total|naira_int }}</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="p-3 rounded" style="background-color: #F7F9FC; border: 1px solid var(--uiv-border-soft);">
+          <div class="small fw-bold text-uppercase text-secondary mb-1">Retention Guidance</div>
+          <div class="small text-dark">{{ customer.rfm_segment.recommended_action }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Purchase History & Loyalty Ledger -->
+<div class="row g-4 mb-4">
+  <div class="col-12 col-xl-7">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Purchase History</h2>
+        <span class="small text-muted">Latest {{ transactions|length }} receipts</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table uiv-table">
+          <thead>
+            <tr>
+              <th>Receipt &amp; Date</th>
+              <th>Items</th>
+              <th class="text-end">Discount</th>
+              <th class="text-end">Net Paid</th>
+              <th class="text-end">Receipt</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for txn in transactions %}
+              <tr>
+                <td>
+                  <div class="fw-semibold font-mono-code">{{ txn.receipt_no }}</div>
+                  <div class="small text-muted">{{ txn.txn_date|date:"d M Y, H:i" }}</div>
+                </td>
+                <td>
+                  {% for item in txn.items.all %}
+                    <div class="small">{{ item.product.product_name }} <span class="text-muted">&times;{{ item.quantity }}</span></div>
+                  {% endfor %}
+                </td>
+                <td class="text-end text-muted tabular-nums">{{ txn.discount_amount|naira }}</td>
+                <td class="text-end fw-semibold tabular-nums">{{ txn.net_amount|naira }}</td>
+                <td class="text-end">
+                  <a href="{% url 'crm:receipt' txn.id %}" class="btn btn-sm btn-outline-secondary">Open</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No completed transactions recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Loyalty Point Ledger</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table uiv-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th class="text-end">Delta</th>
+              <th class="text-end">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in loyalty_entries %}
+              <tr>
+                <td class="small text-muted">{{ entry.recorded_at|date:"d M Y" }}</td>
+                <td>
+                  {% if entry.action_type == 'EARN' %}
+                    <span class="uiv-badge badge-tier-champions">EARN</span>
+                  {% elif entry.action_type == 'REDEEM' %}
+                    <span class="uiv-badge badge-status-open">REDEEM</span>
+                  {% else %}
+                    <span class="uiv-badge badge-tier-potential">ADJUST</span>
+                  {% endif %}
+                </td>
+                <td class="text-end fw-semibold tabular-nums {% if entry.points_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  {% if entry.points_delta > 0 %}+{% endif %}{{ entry.points_delta }}
+                </td>
+                <td class="text-end tabular-nums">{{ entry.balance_after }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No loyalty ledger entries yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Support Tickets -->
+<div class="uiv-card">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">Support Tickets</h2>
+    <a href="{% url 'crm:tickets' %}" class="small fw-semibold text-decoration-none">Support Queue</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>Ticket ID</th>
+          <th>Category</th>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Assigned Staff</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td class="font-mono-code fw-semibold">{{ t.ticket_code }}</td>
+            <td>{{ t.category }}</td>
+            <td>
+              <div class="fw-semibold">{{ t.subject }}</div>
+              {% if t.resolution_note %}
+                <div class="small text-muted">Resolution: {{ t.resolution_note }}</div>
+              {% endif %}
+            </td>
+            <td><span class="uiv-badge {{ t.status|ticket_status_badge }}">{{ t.status|ticket_status_label }}</span></td>
+            <td class="small">{{ t.assigned_to.full_name|default:"Unassigned" }}</td>
+            <td class="small text-muted">{{ t.created_at|date:"d M Y" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No support tickets logged for this customer.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crm:customer_edit' customer.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" style="color: var(--uiv-navy);">Edit Customer Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Full Name</label>
+            {{ edit_form.full_name }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            {{ edit_form.phone }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Email Address</label>
+            {{ edit_form.email }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Campus Category</label>
+            {{ edit_form.category }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Adjust Points Modal -->
+{% if request.user.is_manager_or_admin %}
+<div class="modal fade" id="adjustPointsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crm:customer_adjust_points' customer.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" style="color: var(--uiv-navy);">Manual Loyalty Point Adjustment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">
+            Current balance: <strong>{{ customer.loyalty_points }} pts</strong>. Enter a positive integer to credit points or a negative integer to deduct points.
+          </p>
+          <label for="pointsDeltaInput" class="form-label small fw-semibold">Points Delta</label>
+          <input type="number" id="pointsDeltaInput" name="points_delta" class="form-control" required placeholder="e.g. 50 or -20" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-confirm">Save Adjustment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

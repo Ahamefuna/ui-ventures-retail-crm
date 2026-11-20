@@ -1,0 +1,319 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">Management Dashboard</h1>
+    <p class="uiv-page-subtitle">Sales overview, loyalty point balances, and RFM customer distribution across UI Ventures outlets.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{% url 'crm:reports' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-file-earmark-spreadsheet"></i> Reports
+    </a>
+    <a href="{% url 'crm:pos' %}" class="btn btn-uiv-confirm">
+      <i class="bi bi-cart-plus"></i> New POS Sale
+    </a>
+    <a href="{% url 'crm:rfm' %}" class="btn btn-uiv-primary">
+      <i class="bi bi-diagram-3"></i> RFM Segments
+    </a>
+  </div>
+</div>
+
+<!-- KPI Summary Row -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-navy">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Registered Customers</span>
+        <i class="bi bi-people uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ total_customers|floatformat:0 }}</div>
+      <div class="uiv-kpi-meta">{{ active_buyers }} customers with purchase history</div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-green">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Total Tracked Sales</span>
+        <i class="bi bi-cash-stack uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ total_sales|naira_int }}</div>
+      <div class="uiv-kpi-meta">{{ txn_count }} completed transactions</div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-steel">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Active Loyalty Points</span>
+        <i class="bi bi-award uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ active_loyalty_points }}</div>
+      <div class="uiv-kpi-meta">Equivalent value: {{ loyalty_naira_value|naira }}</div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-crimson">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Open Support Tickets</span>
+        <i class="bi bi-headset uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ open_tickets }}</div>
+      <div class="uiv-kpi-meta">{{ in_progress_tickets }} currently in progress</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Monthly Retail Revenue (₦)</h2>
+        <span class="small text-muted">Last 6 Months</span>
+      </div>
+      <div class="uiv-card-body">
+        <div style="height: 300px; position: relative;">
+          <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">RFM Tier Distribution</h2>
+        <a href="{% url 'crm:rfm' %}" class="small text-decoration-none fw-semibold">View Matrix</a>
+      </div>
+      <div class="uiv-card-body d-flex align-items-center justify-content-center">
+        <div style="height: 300px; width: 100%; position: relative;">
+          <canvas id="rfmDistributionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Top 5 Champions & Low-Stock Watch -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-7">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Top 5 RFM Champions</h2>
+        <a href="{% url 'crm:rfm' %}?tier=Champions" class="small text-decoration-none fw-semibold">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table uiv-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Category</th>
+              <th>RFM</th>
+              <th class="text-end">Total Spend</th>
+              <th class="text-end">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for seg in top_champions %}
+              <tr>
+                <td>
+                  <a href="{% url 'crm:customer_detail' seg.customer.id %}" class="fw-semibold text-decoration-none text-dark">
+                    {{ seg.customer.full_name }}
+                  </a>
+                  <div class="small text-muted">{{ seg.customer.cust_code }} &middot; {{ seg.frequency_count }} orders</div>
+                </td>
+                <td><span class="uiv-badge badge-tier-neutral">{{ seg.customer.category }}</span></td>
+                <td><span class="rfm-code-chip">{{ seg.rfm_code }}</span></td>
+                <td class="text-end fw-semibold tabular-nums">{{ seg.monetary_total|naira }}</td>
+                <td class="text-end fw-semibold tabular-nums" style="color: var(--ui-green);">
+                  {{ seg.customer.loyalty_points }}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No segmented customers available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Low-Stock Reorder Watch</h2>
+        <a href="{% url 'crm:products' %}?low_stock=1" class="small text-decoration-none fw-semibold">Inventory</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table uiv-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="text-end">Stock</th>
+              <th class="text-end">Reorder</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for prod in low_stock_products %}
+              <tr>
+                <td>
+                  <div class="fw-semibold text-dark">{{ prod.product_name }}</div>
+                  <div class="small text-muted font-mono-code">{{ prod.sku_code }} &middot; {{ prod.category }}</div>
+                </td>
+                <td class="text-end">
+                  <span class="uiv-badge badge-status-open">{{ prod.stock_qty }}</span>
+                </td>
+                <td class="text-end text-muted tabular-nums">{{ prod.reorder_level }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-4">No products currently below reorder level.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Outlet Transactions -->
+<div class="uiv-card">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">Recent Transactions</h2>
+    <a href="{% url 'crm:reports' %}" class="small text-decoration-none fw-semibold">Sales Report</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>Receipt No.</th>
+          <th>Customer</th>
+          <th>Attendant</th>
+          <th>Date</th>
+          <th class="text-end">Discount</th>
+          <th class="text-end">Net Amount</th>
+          <th class="text-end">Receipt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in recent_transactions %}
+          <tr>
+            <td class="font-mono-code fw-semibold">{{ txn.receipt_no }}</td>
+            <td>
+              <a href="{% url 'crm:customer_detail' txn.customer.id %}" class="fw-semibold text-decoration-none text-dark">
+                {{ txn.customer.full_name }}
+              </a>
+              <span class="small text-muted ms-1">({{ txn.customer.cust_code }})</span>
+            </td>
+            <td class="small text-muted">{{ txn.attended_by.full_name }}</td>
+            <td class="small text-muted">{{ txn.txn_date|date:"d M Y, H:i" }}</td>
+            <td class="text-end small text-muted tabular-nums">{{ txn.discount_amount|naira }}</td>
+            <td class="text-end fw-semibold tabular-nums">{{ txn.net_amount|naira }}</td>
+            <td class="text-end">
+              <a href="{% url 'crm:receipt' txn.id %}" class="btn btn-sm btn-outline-secondary">Open</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No transactions recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  Chart.defaults.font.family = "'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif";
+  Chart.defaults.color = "#43536B";
+
+  const monthlyLabels = {{ monthly_labels_json|safe }};
+  const monthlyRevenue = {{ monthly_revenue_json|safe }};
+  const monthlyOrders = {{ monthly_orders_json|safe }};
+  const rfmLabels = {{ rfm_labels_json|safe }};
+  const rfmCounts = {{ rfm_counts_json|safe }};
+
+  const revCanvas = document.getElementById("monthlyRevenueChart");
+  if (revCanvas) {
+    new Chart(revCanvas, {
+      type: "bar",
+      data: {
+        labels: monthlyLabels,
+        datasets: [
+          {
+            label: "Net Revenue (₦)",
+            data: monthlyRevenue,
+            backgroundColor: "#103470",
+            hoverBackgroundColor: "#1A64B0",
+            borderRadius: 4,
+            maxBarThickness: 44,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#0B1D3A",
+            padding: 10,
+            cornerRadius: 6,
+            callbacks: {
+              label: (c) => "Net Revenue: ₦" + Number(c.raw || 0).toLocaleString("en-NG", { minimumFractionDigits: 2 }),
+              afterLabel: (c) => `Transactions: ${monthlyOrders[c.dataIndex] || 0}`,
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: "#EAEFF6" },
+            ticks: {
+              callback: (val) => "₦" + Number(val).toLocaleString("en-NG"),
+            },
+          },
+          x: {
+            grid: { display: false },
+          },
+        },
+      },
+    });
+  }
+
+  const rfmCanvas = document.getElementById("rfmDistributionChart");
+  if (rfmCanvas) {
+    new Chart(rfmCanvas, {
+      type: "doughnut",
+      data: {
+        labels: rfmLabels,
+        datasets: [
+          {
+            data: rfmCounts,
+            backgroundColor: ["#145A32", "#1A64B0", "#C9A227", "#A61C1C"],
+            borderColor: "#FFFFFF",
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { padding: 14, usePointStyle: true, boxWidth: 9 },
+          },
+        },
+      },
+    });
+  }
+</script>
+{% endblock %}

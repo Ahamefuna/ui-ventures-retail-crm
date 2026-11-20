@@ -1,0 +1,126 @@
+{% extends "crm/base.html" %}
+{% load static crm_tags %}
+
+{% block title %}Sales Receipt {{ txn.receipt_no }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+  <div>
+    {% if request.user.is_staff_member %}
+      <a href="{% url 'crm:pos' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to POS
+      </a>
+    {% else %}
+      <a href="{% url 'crm:my_portal' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to My Portal
+      </a>
+    {% endif %}
+  </div>
+  <button type="button" onclick="window.print()" class="btn btn-uiv-primary">
+    <i class="bi bi-printer"></i> Print Receipt
+  </button>
+</div>
+
+<div class="receipt-paper">
+  <!-- Official University of Ibadan / UI Ventures Letterhead -->
+  <div class="text-center pb-3 mb-3 border-bottom">
+    <div style="width: 56px; height: 72px; margin: 0 auto 0.5rem;">
+      <img src="{% static 'crm/img/ui_crest.png' %}" alt="University of Ibadan Crest" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+    </div>
+    <h1 class="h5 fw-bold mb-0 font-serif-ui" style="color: var(--ui-navy); letter-spacing: 0.03em;">UI VENTURES LIMITED</h1>
+    <div class="small text-muted">University of Ibadan, Ibadan, Oyo State, Nigeria</div>
+    <div class="small fw-semibold text-uppercase mt-1" style="letter-spacing: 0.08em; color: var(--ui-gold-dark);">
+      Official Retail Sales Receipt
+    </div>
+  </div>
+
+  <!-- Receipt Metadata -->
+  <div class="row g-2 small mb-4">
+    <div class="col-6">
+      <div class="text-muted">Receipt Number</div>
+      <div class="fw-bold font-mono-code">{{ txn.receipt_no }}</div>
+    </div>
+    <div class="col-6 text-end">
+      <div class="text-muted">Date &amp; Time</div>
+      <div class="fw-semibold">{{ txn.txn_date|date:"d M Y, H:i" }}</div>
+    </div>
+    <div class="col-6">
+      <div class="text-muted">Customer</div>
+      <div class="fw-semibold">{{ txn.customer.full_name }} ({{ txn.customer.cust_code }})</div>
+    </div>
+    <div class="col-6 text-end">
+      <div class="text-muted">Attended By</div>
+      <div class="fw-semibold">{{ txn.attended_by.full_name }}</div>
+    </div>
+    <div class="col-12 pt-1">
+      <div class="text-muted">Payment Reference</div>
+      <div class="fw-semibold font-mono-code">{{ txn.payment_ref }}</div>
+    </div>
+  </div>
+
+  <!-- Itemized Breakdown -->
+  <table class="table table-sm mb-3">
+    <thead class="table-light">
+      <tr>
+        <th>Item Description</th>
+        <th class="text-center">Qty</th>
+        <th class="text-end">Unit Price</th>
+        <th class="text-end">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in txn.items.all %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ item.product.product_name }}</div>
+            <div class="small text-muted font-mono-code">{{ item.product.sku_code }}</div>
+          </td>
+          <td class="text-center tabular-nums">{{ item.quantity }}</td>
+          <td class="text-end tabular-nums">{{ item.unit_price_at_sale|naira }}</td>
+          <td class="text-end fw-semibold tabular-nums">{{ item.line_subtotal|naira }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Accounting Totals -->
+  <div class="pt-2">
+    <div class="d-flex justify-content-between small mb-1">
+      <span class="text-muted">Gross Subtotal</span>
+      <span class="fw-semibold tabular-nums">{{ txn.gross_amount|naira }}</span>
+    </div>
+    <div class="d-flex justify-content-between small mb-2">
+      <span class="text-muted">Loyalty Point Discount</span>
+      <span class="fw-semibold text-success tabular-nums">-{{ txn.discount_amount|naira }}</span>
+    </div>
+    <div class="receipt-total-row d-flex justify-content-between align-items-center">
+      <span class="fw-bold" style="color: var(--ui-navy);">Net Amount Paid</span>
+      <span class="fw-bold fs-4 tabular-nums" style="color: var(--ui-navy);">{{ txn.net_amount|naira }}</span>
+    </div>
+  </div>
+
+  <!-- Loyalty Summary -->
+  <div class="mt-4 p-3 rounded" style="background: #F8FAFC; border: 1px solid var(--uiv-border);">
+    <div class="small fw-bold text-uppercase text-secondary mb-2">Loyalty Point Summary</div>
+    <div class="row g-2 small text-center">
+      <div class="col-4">
+        <div class="text-muted">Redeemed</div>
+        <div class="fw-bold text-danger tabular-nums">-{{ redeemed_points }} pts</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted">Earned</div>
+        <div class="fw-bold text-success tabular-nums">+{{ earned_points }} pts</div>
+      </div>
+      <div class="col-4">
+        <div class="text-muted">Closing Balance</div>
+        <div class="fw-bold tabular-nums" style="color: var(--ui-navy);">{{ txn.customer.loyalty_points }} pts</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center small text-muted mt-4 pt-3 border-top">
+    Thank you for patronizing UI Ventures Limited, University of Ibadan.<br />
+    Please retain this receipt for inquiries, returns, or loyalty point verification.
+  </div>
+</div>
+{% endblock %}

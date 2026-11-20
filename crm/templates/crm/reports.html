@@ -1,0 +1,220 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}Sales &amp; Analytics Reports{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">Sales &amp; Analytics Reports</h1>
+    <p class="uiv-page-subtitle">Generate filtered sales summaries by date range and category, review RFM revenue share, and export CSV files.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a
+      href="{% url 'crm:export_sales_csv' %}?start_date={{ start_date }}&end_date={{ end_date }}&category={{ selected_category }}"
+      class="btn btn-uiv-confirm"
+    >
+      <i class="bi bi-file-earmark-spreadsheet"></i> Export Sales CSV
+    </a>
+    <a href="{% url 'crm:export_rfm_csv' %}" class="btn btn-uiv-primary">
+      <i class="bi bi-download"></i> Export RFM CSV
+    </a>
+  </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="uiv-card mb-4">
+  <div class="uiv-card-body">
+    <form method="get" action="{% url 'crm:reports' %}" class="row g-2 align-items-end">
+      <div class="col-6 col-md-3">
+        <label for="repStart" class="form-label small fw-semibold text-secondary">Start Date</label>
+        <input type="date" id="repStart" name="start_date" value="{{ start_date }}" class="form-control" />
+      </div>
+      <div class="col-6 col-md-3">
+        <label for="repEnd" class="form-label small fw-semibold text-secondary">End Date</label>
+        <input type="date" id="repEnd" name="end_date" value="{{ end_date }}" class="form-control" />
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="repCat" class="form-label small fw-semibold text-secondary">Product Category</label>
+        <select id="repCat" name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for val, label in category_choices %}
+            <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-uiv-primary flex-grow-1">Generate</button>
+        <a href="{% url 'crm:reports' %}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Period Summary KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-green">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Net Retail Revenue</span>
+        <i class="bi bi-cash-coin uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value" style="color: var(--ui-green);">{{ net_total|naira_int }}</div>
+      <div class="uiv-kpi-meta">{{ txn_count }} matching transactions</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-navy">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Gross Sales Value</span>
+        <i class="bi bi-receipt uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ gross_total|naira_int }}</div>
+      <div class="uiv-kpi-meta">Before loyalty discounts</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-steel">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Loyalty Discounts</span>
+        <i class="bi bi-tag uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value" style="color: var(--ui-river);">{{ discount_total|naira_int }}</div>
+      <div class="uiv-kpi-meta">Redeemed across period</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="uiv-kpi-card kpi-accent-amber">
+      <div class="uiv-kpi-top">
+        <span class="uiv-kpi-label">Total Units Sold</span>
+        <i class="bi bi-box-seam uiv-kpi-glyph"></i>
+      </div>
+      <div class="uiv-kpi-value">{{ units_sold }}</div>
+      <div class="uiv-kpi-meta">Across matching line items</div>
+    </div>
+  </div>
+</div>
+
+<!-- Category Breakdown & Chart -->
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-7">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Sales Summary by Product Category</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table uiv-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th class="text-end">Orders</th>
+              <th class="text-end">Units Sold</th>
+              <th class="text-end">Gross Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in category_breakdown %}
+              <tr>
+                <td class="fw-semibold">{{ row.product__category }}</td>
+                <td class="text-end tabular-nums">{{ row.orders }}</td>
+                <td class="text-end tabular-nums">{{ row.units }}</td>
+                <td class="text-end fw-semibold tabular-nums">{{ row.revenue|naira }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4">No sales data found for this filter range.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="uiv-card h-100">
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Category Revenue Breakdown</h2>
+      </div>
+      <div class="uiv-card-body">
+        <div style="height: 260px;">
+          <canvas id="categoryRevenueChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RFM Tier Revenue Breakdown -->
+<div class="uiv-card">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">RFM Tier Revenue Contribution</h2>
+  </div>
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>RFM Retention Tier</th>
+          <th class="text-end">Customers</th>
+          <th class="text-end">Total Orders</th>
+          <th class="text-end">Cumulative Net Spend</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rfm_breakdown %}
+          <tr>
+            <td><span class="uiv-badge {{ row.tier_label|tier_badge_class }}">{{ row.tier_label }}</span></td>
+            <td class="text-end tabular-nums">{{ row.customers }}</td>
+            <td class="text-end tabular-nums">{{ row.total_orders }}</td>
+            <td class="text-end fw-semibold tabular-nums">{{ row.total_spend|naira }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-4">No RFM segmentation data computed yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  Chart.defaults.font.family = "'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif";
+  Chart.defaults.color = "#43536B";
+
+  const catLabels = {{ cat_labels_json|safe }};
+  const catRevenue = {{ cat_revenue_json|safe }};
+  const ctx = document.getElementById("categoryRevenueChart");
+  if (ctx && catLabels.length > 0) {
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: catLabels,
+        datasets: [
+          {
+            label: "Revenue (₦)",
+            data: catRevenue,
+            backgroundColor: ["#103470", "#1A64B0", "#145A32", "#C9A227", "#A61C1C"],
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: "#EAEFF6" },
+            ticks: { callback: (v) => "₦" + Number(v).toLocaleString("en-NG") },
+          },
+          y: {
+            grid: { display: false },
+          },
+        },
+      },
+    });
+  }
+</script>
+{% endblock %}

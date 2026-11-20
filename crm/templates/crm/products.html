@@ -1,0 +1,278 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}Product Inventory{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">Product Inventory</h1>
+    <p class="uiv-page-subtitle">Manage UI Ventures SKUs, retail pricing, stock quantities, and reorder thresholds.</p>
+  </div>
+  <button type="button" class="btn btn-uiv-confirm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+    <i class="bi bi-plus-lg"></i> Add Product
+  </button>
+</div>
+
+<!-- Category Filter Bar -->
+<div class="uiv-pill-strip mb-3">
+  <a href="?q={{ query }}{% if low_stock_only %}&low_stock=1{% endif %}" class="uiv-filter-pill {% if not selected_category %}active{% endif %}">
+    All Categories
+  </a>
+  {% for val, label in category_choices %}
+    <a href="?category={{ val|urlencode }}&q={{ query }}{% if low_stock_only %}&low_stock=1{% endif %}" class="uiv-filter-pill {% if selected_category == val %}active{% endif %}">
+      {{ label }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- Inventory KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="uiv-kpi-card kpi-accent-navy">
+      <div class="uiv-kpi-label">Active Catalog SKUs</div>
+      <div class="uiv-kpi-value">{{ total_skus }}</div>
+      <div class="uiv-kpi-meta">Across 5 retail categories</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="uiv-kpi-card kpi-accent-green">
+      <div class="uiv-kpi-label">Total Units in Stock</div>
+      <div class="uiv-kpi-value">{{ total_units }}</div>
+      <div class="uiv-kpi-meta">Available inventory across outlets</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="uiv-kpi-card kpi-accent-crimson">
+      <div class="uiv-kpi-label">Low-Stock Reorder Alerts</div>
+      <div class="uiv-kpi-value" style="color: var(--uiv-crimson);">{{ low_stock_count }}</div>
+      <div class="uiv-kpi-meta">Items at or below reorder level</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="uiv-card mb-4">
+  <div class="uiv-card-body">
+    <form method="get" action="{% url 'crm:products' %}" class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label for="prodSearch" class="form-label small fw-semibold text-secondary">Search Catalog</label>
+        <input type="text" id="prodSearch" name="q" value="{{ query }}" class="form-control" placeholder="SKU code or product name..." />
+      </div>
+      <div class="col-6 col-md-3">
+        <label for="prodCat" class="form-label small fw-semibold text-secondary">Category</label>
+        <select id="prodCat" name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for val, label in category_choices %}
+            <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" value="1" id="lowStockCheck" name="low_stock" {% if low_stock_only %}checked{% endif %} />
+          <label class="form-check-label small fw-semibold" for="lowStockCheck">Low Stock Only</label>
+        </div>
+      </div>
+      <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-uiv-primary flex-grow-1">Apply</button>
+        <a href="{% url 'crm:products' %}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Product Table -->
+<div class="uiv-card">
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th class="text-end">Unit Price</th>
+          <th class="text-end">Stock Qty</th>
+          <th class="text-end">Reorder Level</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in page_obj %}
+          <tr>
+            <td class="font-mono-code fw-semibold">{{ p.sku_code }}</td>
+            <td class="fw-semibold text-dark">{{ p.product_name }}</td>
+            <td><span class="uiv-badge badge-tier-neutral">{{ p.category }}</span></td>
+            <td class="text-end fw-semibold tabular-nums">{{ p.unit_price|naira }}</td>
+            <td class="text-end fw-semibold tabular-nums">{{ p.stock_qty }}</td>
+            <td class="text-end text-muted tabular-nums">{{ p.reorder_level }}</td>
+            <td>
+              {% if p.is_low_stock %}
+                <span class="uiv-badge badge-status-open">Low Stock</span>
+              {% else %}
+                <span class="uiv-badge badge-tier-champions">In Stock</span>
+              {% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary me-1"
+                data-bs-toggle="modal"
+                data-bs-target="#editProductModal"
+                data-id="{{ p.id }}"
+                data-sku="{{ p.sku_code }}"
+                data-name="{{ p.product_name }}"
+                data-category="{{ p.category }}"
+                data-price="{{ p.unit_price }}"
+                data-stock="{{ p.stock_qty }}"
+                data-reorder="{{ p.reorder_level }}"
+              >
+                Edit
+              </button>
+              <form method="post" action="{% url 'crm:product_delete' p.id %}" class="d-inline" onsubmit="return confirm('Delete product {{ p.sku_code }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-5">No products match the current filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="uiv-card-body border-top d-flex justify-content-between align-items-center">
+      <span class="small text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}{% if low_stock_only %}&low_stock=1{% endif %}">Previous</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}{% if low_stock_only %}&low_stock=1{% endif %}">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crm:product_create' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" style="color: var(--uiv-navy);">Add Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">SKU Code</label>
+              {{ product_form.sku_code }}
+            </div>
+            <div class="col-md-7">
+              <label class="form-label small fw-semibold">Category</label>
+              {{ product_form.category }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Product Name</label>
+              {{ product_form.product_name }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Unit Price (₦)</label>
+              {{ product_form.unit_price }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Stock Qty</label>
+              {{ product_form.stock_qty }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Reorder Level</label>
+              {{ product_form.reorder_level }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-confirm">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="editProductForm" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" style="color: var(--uiv-navy);">Edit Product</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">SKU Code</label>
+              <input type="text" id="epSku" name="sku_code" class="form-control" required />
+            </div>
+            <div class="col-md-7">
+              <label class="form-label small fw-semibold">Category</label>
+              <select id="epCategory" name="category" class="form-select" required>
+                {% for val, label in category_choices %}
+                  <option value="{{ val }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Product Name</label>
+              <input type="text" id="epName" name="product_name" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Unit Price (₦)</label>
+              <input type="number" step="0.01" min="0.01" id="epPrice" name="unit_price" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Stock Qty</label>
+              <input type="number" min="0" id="epStock" name="stock_qty" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Reorder Level</label>
+              <input type="number" min="0" id="epReorder" name="reorder_level" class="form-control" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const editProdModal = document.getElementById("editProductModal");
+  if (editProdModal) {
+    editProdModal.addEventListener("show.bs.modal", (ev) => {
+      const btn = ev.relatedTarget;
+      const pid = btn.getAttribute("data-id");
+      document.getElementById("editProductForm").action = `/products/${pid}/edit/`;
+      document.getElementById("epSku").value = btn.getAttribute("data-sku");
+      document.getElementById("epName").value = btn.getAttribute("data-name");
+      document.getElementById("epCategory").value = btn.getAttribute("data-category");
+      document.getElementById("epPrice").value = btn.getAttribute("data-price");
+      document.getElementById("epStock").value = btn.getAttribute("data-stock");
+      document.getElementById("epReorder").value = btn.getAttribute("data-reorder");
+    });
+  }
+</script>
+{% endblock %}

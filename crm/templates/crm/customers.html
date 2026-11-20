@@ -1,0 +1,193 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}Customer Directory{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">Customer Directory</h1>
+    <p class="uiv-page-subtitle">{{ total_matching }} registered customer{{ total_matching|pluralize }} matching current filters.</p>
+  </div>
+  <button type="button" class="btn btn-uiv-confirm" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+    <i class="bi bi-person-plus"></i> Register Customer
+  </button>
+</div>
+
+<!-- Category Filter Bar -->
+<div class="uiv-pill-strip mb-3">
+  <a href="?q={{ query }}&tier={{ selected_tier|urlencode }}" class="uiv-filter-pill {% if not selected_category %}active{% endif %}">
+    All Categories
+  </a>
+  {% for val, label in category_choices %}
+    <a
+      href="?category={{ val|urlencode }}&q={{ query }}&tier={{ selected_tier|urlencode }}"
+      class="uiv-filter-pill {% if selected_category == val %}active{% endif %}"
+    >
+      {{ val }}
+    </a>
+  {% endfor %}
+</div>
+
+<!-- Search & Filter Panel -->
+<div class="uiv-card mb-4">
+  <div class="uiv-card-body">
+    <form method="get" action="{% url 'crm:customers' %}" class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label for="customerQuery" class="form-label small fw-semibold text-secondary">Search Customers</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light"><i class="bi bi-search text-muted"></i></span>
+          <input
+            type="text"
+            id="customerQuery"
+            name="q"
+            value="{{ query }}"
+            class="form-control"
+            placeholder="Name, phone number, email, or customer code..."
+          />
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <label for="categoryFilter" class="form-label small fw-semibold text-secondary">Category</label>
+        <select id="categoryFilter" name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for val, label in category_choices %}
+            <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-6 col-md-2">
+        <label for="tierFilter" class="form-label small fw-semibold text-secondary">RFM Tier</label>
+        <select id="tierFilter" name="tier" class="form-select">
+          <option value="">All Tiers</option>
+          {% for val, label in tier_choices %}
+            <option value="{{ val }}" {% if selected_tier == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-uiv-primary flex-grow-1">Apply</button>
+        <a href="{% url 'crm:customers' %}" class="btn btn-outline-secondary" title="Reset Filters">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Customers Table -->
+<div class="uiv-card">
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Customer Name</th>
+          <th>Phone</th>
+          <th>Category</th>
+          <th>RFM Tier</th>
+          <th class="text-end">Orders</th>
+          <th class="text-end">Lifetime Spend</th>
+          <th class="text-end">Points</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in page_obj %}
+          <tr>
+            <td><span class="fw-semibold font-mono-code">{{ c.cust_code }}</span></td>
+            <td>
+              <a href="{% url 'crm:customer_detail' c.id %}" class="fw-semibold text-decoration-none text-dark">
+                {{ c.full_name }}
+              </a>
+              {% if c.email %}<div class="small text-muted">{{ c.email }}</div>{% endif %}
+            </td>
+            <td class="tabular-nums">{{ c.phone }}</td>
+            <td><span class="uiv-badge badge-tier-neutral">{{ c.category }}</span></td>
+            <td>
+              {% if c.rfm_segment %}
+                <span class="uiv-badge {{ c.rfm_segment.tier_label|tier_badge_class }}">
+                  {{ c.rfm_segment.tier_label }}
+                </span>
+              {% else %}
+                <span class="uiv-badge badge-tier-neutral">Unsegmented</span>
+              {% endif %}
+            </td>
+            <td class="text-end tabular-nums">{{ c.txn_count|default:0 }}</td>
+            <td class="text-end fw-semibold tabular-nums">{{ c.total_spend|default:0|naira }}</td>
+            <td class="text-end fw-semibold tabular-nums" style="color: var(--uiv-green);">{{ c.loyalty_points }}</td>
+            <td class="text-end">
+              <a href="{% url 'crm:customer_detail' c.id %}" class="btn btn-sm btn-outline-primary">View</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-5">No customers found matching your criteria.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="uiv-card-body border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="small text-muted">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </div>
+      <nav aria-label="Customer directory pagination">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}&tier={{ selected_tier }}">Previous</a>
+            </li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}&tier={{ selected_tier }}">Next</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crm:customer_create' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="addCustomerModalLabel" style="color: var(--uiv-navy);">Register Customer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Full Name</label>
+            {{ customer_form.full_name }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            {{ customer_form.phone }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Email Address (Optional)</label>
+            {{ customer_form.email }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Campus Category</label>
+            {{ customer_form.category }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-confirm">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

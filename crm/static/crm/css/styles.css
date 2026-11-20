@@ -1,0 +1,843 @@
+/* UI Ventures Retail CRM — University of Ibadan Official Institutional Design System */
+
+:root {
+  /* Official University of Ibadan Colour Palette */
+  --ui-navy: #103470;
+  --ui-navy-dark: #0A234E;
+  --ui-navy-deep: #0B1D3A;
+  --ui-navy-tint: #EDF2FA;
+  --ui-gold: #C9A227;
+  --ui-gold-dark: #8C741D;
+  --ui-gold-tint: #FBF6E6;
+  --ui-river: #1A64B0;
+  --ui-river-tint: #EAF3FC;
+  --ui-crimson: #A61C1C;
+  --ui-crimson-tint: #FDF0F0;
+  --ui-green: #145A32;
+  --ui-green-tint: #EBF6EF;
+
+  /* Theme Aliases */
+  --uiv-navy: var(--ui-navy);
+  --uiv-steel: var(--ui-river);
+  --uiv-green: var(--ui-green);
+  --uiv-green-tint: var(--ui-green-tint);
+  --uiv-amber: var(--ui-gold);
+  --uiv-crimson: var(--ui-crimson);
+
+  /* Neutrals & Structural Tokens */
+  --uiv-bg: #F3F5F9;
+  --uiv-surface: #FFFFFF;
+  --uiv-surface-subtle: #F8FAFC;
+  --uiv-border: #DCE3EE;
+  --uiv-border-soft: #EAEFF6;
+  --uiv-ink: #132033;
+  --uiv-ink-secondary: #43536B;
+  --uiv-muted: #66778F;
+
+  /* Typography */
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --sidebar-width: 252px;
+  --topbar-height: 64px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--uiv-bg);
+  color: var(--uiv-ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.uiv-page-title,
+.uiv-card-title,
+.uiv-kpi-value,
+.uiv-brand-title {
+  font-family: var(--font-display);
+}
+
+.font-serif-ui {
+  font-family: var(--font-serif);
+}
+
+.font-mono-code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   Top Institutional Navigation Bar
+   ========================================================= */
+.uiv-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--topbar-height);
+  background-color: var(--ui-navy);
+  color: #FFFFFF;
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.35rem;
+  border-bottom: 2.5px solid var(--ui-gold);
+  box-shadow: 0 2px 10px rgba(10, 35, 78, 0.22);
+}
+
+.uiv-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.uiv-crest-frame {
+  width: 40px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.uiv-crest-frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.uiv-brand-title {
+  font-weight: 700;
+  font-size: 0.94rem;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.uiv-brand-sub {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.76);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.uiv-role-tag {
+  background-color: rgba(201, 162, 39, 0.16);
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  color: #F8E7A2;
+  padding: 0.22rem 0.65rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.uiv-user-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   Left Institutional Sidebar
+   ========================================================= */
+.uiv-sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background-color: var(--ui-navy-deep);
+  color: #CBD5E1;
+  overflow-y: auto;
+  padding: 1.1rem 0.75rem 1rem;
+  z-index: 1030;
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.uiv-nav-section {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: #8296B3;
+  font-weight: 700;
+  padding: 0.85rem 0.75rem 0.35rem;
+}
+
+.uiv-nav-section:first-child {
+  padding-top: 0.2rem;
+}
+
+.uiv-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.18rem;
+  border-radius: 6px;
+  color: #D5E0EE;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 500;
+  min-height: 41px;
+  border-left: 3px solid transparent;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.uiv-nav-link-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.uiv-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #FFFFFF;
+}
+
+.uiv-nav-link.active {
+  background-color: var(--ui-river);
+  border-left-color: var(--ui-gold);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(10, 35, 78, 0.35);
+}
+
+.uiv-nav-link i {
+  font-size: 0.98rem;
+  width: 18px;
+  text-align: center;
+}
+
+.uiv-nav-count {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+}
+
+.uiv-nav-count-warn {
+  background: var(--ui-crimson);
+  color: #FFFFFF;
+}
+
+.uiv-sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 0.75rem 0.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 0.74rem;
+  color: #8EA2BD;
+  line-height: 1.5;
+}
+
+.uiv-sidebar-motto {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: rgba(201, 162, 39, 0.85);
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
+}
+
+/* =========================================================
+   Main Content Workspace
+   ========================================================= */
+.uiv-main {
+  margin-left: var(--sidebar-width);
+  padding: calc(var(--topbar-height) + 1.5rem) 1.85rem 2.75rem;
+  min-height: 100vh;
+}
+
+.uiv-workspace-container {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.uiv-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: var(--topbar-height);
+  background: rgba(11, 29, 58, 0.5);
+  z-index: 1025;
+}
+
+@media (max-width: 991.98px) {
+  .uiv-sidebar {
+    transform: translateX(-100%);
+  }
+  .uiv-sidebar.open {
+    transform: translateX(0);
+  }
+  .uiv-sidebar-backdrop.show {
+    display: block;
+  }
+  .uiv-main {
+    margin-left: 0;
+    padding: calc(var(--topbar-height) + 1.2rem) 1rem 2rem;
+  }
+}
+
+/* =========================================================
+   Page Headers & Breadcrumbs
+   ========================================================= */
+.uiv-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.45rem;
+  border-bottom: 1px solid var(--uiv-border);
+}
+
+.uiv-breadcrumb {
+  font-size: 0.78rem;
+  color: var(--uiv-muted);
+  margin-bottom: 0.3rem;
+}
+
+.uiv-breadcrumb a {
+  color: var(--ui-river);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.uiv-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.uiv-page-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ui-navy);
+  margin: 0;
+}
+
+.uiv-page-subtitle {
+  color: var(--uiv-muted);
+  font-size: 0.9rem;
+  margin: 0.2rem 0 0;
+}
+
+/* =========================================================
+   Panels, Cards & Top-Accented KPI Tiles
+   ========================================================= */
+.uiv-card {
+  background: var(--uiv-surface);
+  border: 1px solid var(--uiv-border);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(16, 52, 112, 0.04), 0 4px 12px rgba(16, 52, 112, 0.02);
+  overflow: hidden;
+}
+
+.uiv-card-header {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--uiv-border-soft);
+  background-color: var(--uiv-surface-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.uiv-card-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ui-navy);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.uiv-card-body {
+  padding: 1.25rem;
+}
+
+.uiv-kpi-card {
+  background: var(--uiv-surface);
+  border: 1px solid var(--uiv-border);
+  border-top: 3px solid var(--ui-navy);
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(16, 52, 112, 0.04);
+  height: 100%;
+  transition: box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.uiv-kpi-card:hover {
+  box-shadow: 0 4px 14px rgba(16, 52, 112, 0.08);
+}
+
+.kpi-accent-navy { border-top-color: var(--ui-navy); }
+.kpi-accent-green { border-top-color: var(--ui-green); }
+.kpi-accent-steel { border-top-color: var(--ui-river); }
+.kpi-accent-amber { border-top-color: var(--ui-gold); }
+.kpi-accent-crimson { border-top-color: var(--ui-crimson); }
+
+.uiv-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.uiv-kpi-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--uiv-muted);
+}
+
+.uiv-kpi-glyph {
+  font-size: 1.05rem;
+  color: var(--uiv-muted);
+  opacity: 0.55;
+}
+
+.uiv-kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--uiv-ink);
+  margin: 0.35rem 0 0.3rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.uiv-kpi-meta {
+  font-size: 0.8rem;
+  color: var(--uiv-muted);
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--uiv-border-soft);
+}
+
+/* =========================================================
+   Filter Strips, Buttons & Inputs
+   ========================================================= */
+.uiv-pill-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.2rem;
+}
+
+.uiv-pill-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.uiv-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--uiv-border);
+  background: var(--uiv-surface);
+  color: var(--uiv-ink-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  min-height: 34px;
+  transition: all 0.14s ease;
+}
+
+.uiv-filter-pill:hover {
+  border-color: var(--ui-river);
+  color: var(--ui-navy);
+  background: var(--ui-river-tint);
+}
+
+.uiv-filter-pill.active {
+  background: var(--ui-navy);
+  border-color: var(--ui-navy);
+  color: #FFFFFF;
+}
+
+.btn {
+  font-family: var(--font-display);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.84rem;
+  min-height: 39px;
+  padding: 0.45rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-sm {
+  min-height: 31px;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.68rem;
+}
+
+.form-control,
+.form-select {
+  border-radius: 6px;
+  border-color: #CBD5E1;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  min-height: 40px;
+  color: var(--uiv-ink);
+}
+
+.form-control-sm,
+.form-select-sm {
+  min-height: 34px;
+  font-size: 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ui-river);
+  box-shadow: 0 0 0 0.2rem rgba(26, 100, 176, 0.16);
+}
+
+.btn-uiv-primary {
+  background-color: var(--ui-navy);
+  border-color: var(--ui-navy);
+  color: #FFFFFF;
+}
+
+.btn-uiv-primary:hover,
+.btn-uiv-primary:focus {
+  background-color: var(--ui-navy-dark);
+  border-color: var(--ui-navy-dark);
+  color: #FFFFFF;
+}
+
+.btn-uiv-confirm {
+  background-color: var(--ui-green);
+  border-color: var(--ui-green);
+  color: #FFFFFF;
+}
+
+.btn-uiv-confirm:hover,
+.btn-uiv-confirm:focus {
+  background-color: #0E4625;
+  border-color: #0E4625;
+  color: #FFFFFF;
+}
+
+.btn-uiv-steel {
+  background-color: var(--ui-river);
+  border-color: var(--ui-river);
+  color: #FFFFFF;
+}
+
+.btn-uiv-steel:hover,
+.btn-uiv-steel:focus {
+  background-color: #144F8C;
+  border-color: #144F8C;
+  color: #FFFFFF;
+}
+
+/* =========================================================
+   Badges, Tables & RFM Indicators
+   ========================================================= */
+.uiv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.58rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.71rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.badge-tier-champions,
+.badge-status-resolved {
+  background-color: var(--ui-green-tint);
+  color: var(--ui-green);
+  border: 1px solid rgba(20, 90, 50, 0.22);
+}
+
+.badge-tier-loyal {
+  background-color: var(--ui-river-tint);
+  color: var(--ui-river);
+  border: 1px solid rgba(26, 100, 176, 0.24);
+}
+
+.badge-tier-potential,
+.badge-status-progress {
+  background-color: var(--ui-gold-tint);
+  color: var(--ui-gold-dark);
+  border: 1px solid rgba(140, 116, 29, 0.28);
+}
+
+.badge-tier-atrisk,
+.badge-status-open {
+  background-color: var(--ui-crimson-tint);
+  color: var(--ui-crimson);
+  border: 1px solid rgba(166, 28, 28, 0.24);
+}
+
+.badge-tier-neutral {
+  background-color: #F1F5F9;
+  color: var(--uiv-ink-secondary);
+  border: 1px solid #D5DEE8;
+}
+
+.uiv-table {
+  margin-bottom: 0;
+  font-size: 0.89rem;
+}
+
+.uiv-table thead th {
+  background-color: #F7F9FC;
+  color: var(--uiv-ink-secondary);
+  font-family: var(--font-display);
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--uiv-border);
+  padding: 0.78rem 1.05rem;
+  white-space: nowrap;
+}
+
+.uiv-table tbody td {
+  padding: 0.78rem 1.05rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--uiv-border-soft);
+}
+
+.uiv-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.uiv-table tbody tr:hover {
+  background-color: #F4F7FC;
+}
+
+.rfm-score-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  background-color: #EEF2F7;
+  color: var(--ui-navy);
+}
+
+.rfm-score-high { background-color: var(--ui-green-tint); color: var(--ui-green); }
+.rfm-score-mid  { background-color: var(--ui-river-tint); color: var(--ui-river); }
+.rfm-score-low  { background-color: var(--ui-crimson-tint); color: var(--ui-crimson); }
+
+.rfm-code-chip {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.52rem;
+  border-radius: 4px;
+  background-color: var(--ui-navy);
+  color: #FFFFFF;
+  letter-spacing: 0.07em;
+}
+
+.uiv-progress {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #E2E8F0;
+  overflow: hidden;
+}
+
+/* =========================================================
+   Centered Institutional Login Screen (University of Ibadan)
+   ========================================================= */
+.uiv-auth-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(160deg, #0A234E 0%, #103470 55%, #0B1D3A 100%);
+  border-top: 4px solid var(--ui-gold);
+}
+
+.uiv-auth-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border-top: 4px solid var(--ui-gold);
+  padding: 2.25rem 2.25rem 2rem;
+  box-shadow: 0 20px 50px rgba(5, 16, 38, 0.42);
+}
+
+.uiv-auth-crest {
+  width: 72px;
+  height: 92px;
+  margin: 0 auto 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uiv-auth-crest img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.uiv-auth-rule {
+  width: 48px;
+  height: 2px;
+  background-color: var(--ui-gold);
+  margin: 0.85rem auto 0;
+}
+
+.uiv-auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   POS Terminal & Printable Receipt
+   ========================================================= */
+.pos-product-grid {
+  max-height: 580px;
+  overflow-y: auto;
+}
+
+.pos-product-card {
+  border: 1px solid var(--uiv-border);
+  border-radius: 6px;
+  padding: 0.85rem;
+  background: #FFFFFF;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pos-product-card:hover {
+  border-color: var(--ui-river);
+  box-shadow: 0 2px 8px rgba(16, 52, 112, 0.08);
+}
+
+.pos-sticky-checkout {
+  position: sticky;
+  top: calc(var(--topbar-height) + 1rem);
+}
+
+.receipt-paper {
+  max-width: 660px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid var(--uiv-border);
+  border-top: 4px solid var(--ui-navy);
+  border-radius: 6px;
+  padding: 2.25rem 2.5rem;
+  box-shadow: 0 4px 16px rgba(16, 52, 112, 0.07);
+}
+
+.receipt-total-row {
+  border-top: 1px solid #94A3B8;
+  border-bottom: 3px double var(--ui-navy);
+  padding: 0.65rem 0;
+}
+
+@media print {
+  .uiv-topbar,
+  .uiv-sidebar,
+  .uiv-sidebar-backdrop,
+  .no-print {
+    display: none !important;
+  }
+  .uiv-main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  body {
+    background: #FFFFFF !important;
+  }
+  .receipt-paper {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+.modal-content {
+  border-radius: 8px;
+  border: 1px solid var(--uiv-border);
+  box-shadow: 0 16px 40px rgba(10, 35, 78, 0.18);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ui-river);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

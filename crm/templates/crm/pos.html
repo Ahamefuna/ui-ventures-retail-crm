@@ -1,0 +1,248 @@
+{% extends "crm/base.html" %}
+{% load static crm_tags %}
+
+{% block title %}Point of Sale (POS){% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">Point of Sale (POS)</h1>
+    <p class="uiv-page-subtitle">Process retail sales, apply loyalty point discounts (1 pt = ₦{{ point_naira_value }}, max 50%), and issue digital receipts.</p>
+  </div>
+  <button type="button" id="posClearCartBtn" class="btn btn-outline-secondary">
+    <i class="bi bi-trash3"></i> Clear Cart
+  </button>
+</div>
+
+<div class="row g-4">
+  <!-- Left: Product Catalog Selector -->
+  <div class="col-12 col-xl-7">
+    <div class="uiv-card">
+      <div class="uiv-card-header flex-wrap gap-2">
+        <h2 class="uiv-card-title">Product Catalog</h2>
+        <div class="input-group input-group-sm" style="max-width: 260px;">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input
+            type="text"
+            id="posProductSearch"
+            class="form-control"
+            placeholder="Filter by SKU or product name..."
+          />
+        </div>
+      </div>
+
+      <div class="px-3 pt-2.5 pb-2 border-bottom bg-white">
+        <div class="uiv-pill-strip">
+          <button type="button" class="uiv-filter-pill active" data-pos-cat="">All Items</button>
+          {% for cat in product_categories %}
+            <button type="button" class="uiv-filter-pill" data-pos-cat="{{ cat }}">{{ cat }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="uiv-card-body pos-product-grid">
+        <div class="row g-2.5">
+          {% for p in products %}
+            <div
+              class="col-12 col-sm-6 col-md-4 pos-product-item"
+              data-category="{{ p.category }}"
+              data-search-text="{{ p.sku_code|lower }} {{ p.product_name|lower }} {{ p.category|lower }}"
+            >
+              <div class="pos-product-card">
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted font-mono-code fw-semibold">{{ p.sku_code }}</span>
+                    <span class="small {% if p.stock_qty <= 10 %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                      Qty: {{ p.stock_qty }}
+                    </span>
+                  </div>
+                  <div class="fw-semibold text-dark small mb-2" style="min-height: 36px; line-height: 1.35;">
+                    {{ p.product_name }}
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                  <span class="fw-bold tabular-nums" style="color: var(--uiv-navy);">
+                    {{ p.unit_price|naira }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-uiv-steel"
+                    data-add-product="{{ p.id }}"
+                    {% if p.stock_qty <= 0 %}disabled{% endif %}
+                  >
+                    {% if p.stock_qty <= 0 %}Out{% else %}<i class="bi bi-plus"></i> Add{% endif %}
+                  </button>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div id="posCatalogEmpty" class="text-center text-muted py-5 d-none small">
+          No products match the current search or category filter.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Checkout Cart & Loyalty Redemption -->
+  <div class="col-12 col-xl-5">
+    <form
+      method="post"
+      action="{% url 'crm:pos' %}"
+      id="posForm"
+      data-point-value="{{ point_naira_value }}"
+      data-loading-text="Processing Sale..."
+      class="uiv-card pos-sticky-checkout"
+    >
+      {% csrf_token %}
+      <input type="hidden" name="cart_payload" id="posCartPayload" value="[]" />
+
+      <div class="uiv-card-header">
+        <h2 class="uiv-card-title">Order Summary &amp; Checkout</h2>
+        <span id="posCartCountBadge" class="uiv-badge badge-tier-loyal">0 items</span>
+      </div>
+
+      <div class="uiv-card-body">
+        <!-- Customer Selection -->
+        <div class="mb-3">
+          <label for="posCustomerSelect" class="form-label small fw-semibold text-secondary">
+            1. Select Customer
+          </label>
+          <input
+            type="text"
+            id="posCustomerSearch"
+            class="form-control form-control-sm mb-2"
+            placeholder="Filter customer by name, code, or phone..."
+          />
+          <select id="posCustomerSelect" name="customer_id" class="form-select" required>
+            <option value="">-- Choose Registered Customer --</option>
+            {% for c in customers %}
+              <option value="{{ c.id }}">
+                {{ c.cust_code }} — {{ c.full_name }} ({{ c.phone }}) &middot; {{ c.loyalty_points }} pts
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Selected Customer Loyalty Box -->
+        <div id="posCustomerInfo" class="p-3 rounded mb-3 d-none" style="background: var(--uiv-green-tint); border: 1px solid rgba(20, 90, 50, 0.22);">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="small fw-bold text-uppercase" style="color: var(--uiv-green);">Loyalty Balance</span>
+                <span id="posCustomerTierBadge" class="uiv-badge badge-tier-neutral"></span>
+              </div>
+              <div id="posCustomerCategory" class="small text-muted"></div>
+            </div>
+            <div class="text-end">
+              <div id="posCustomerPoints" class="fs-5 fw-bold tabular-nums" style="color: var(--uiv-green);">0 pts</div>
+              <div id="posCustomerNaira" class="small fw-semibold text-dark tabular-nums">₦0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Line Items -->
+        <div class="mb-3">
+          <div class="small fw-semibold text-secondary mb-2">2. Selected Items</div>
+          <div class="table-responsive border rounded" style="max-height: 215px; overflow-y: auto;">
+            <table class="table table-sm mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Product</th>
+                  <th class="text-center">Qty</th>
+                  <th class="text-end">Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="posCartBody"></tbody>
+            </table>
+            <div id="posCartEmpty" class="text-center text-muted small py-4">
+              Select products from the catalog to begin a sale.
+            </div>
+          </div>
+        </div>
+
+        <!-- Loyalty Point Redemption -->
+        <div class="mb-3">
+          <label for="posPointsInput" class="form-label small fw-semibold text-secondary">
+            3. Loyalty Points to Redeem (Max 50% of Gross)
+          </label>
+          <div class="input-group">
+            <input
+              type="number"
+              id="posPointsInput"
+              name="points_to_redeem"
+              class="form-control"
+              value="0"
+              min="0"
+              step="1"
+            />
+            <button type="button" id="posApplyMaxPoints" class="btn btn-outline-success">
+              Apply Max
+            </button>
+          </div>
+          <div id="posMaxPointsHint" class="form-text small">Select a customer to view redeemable points.</div>
+        </div>
+
+        <!-- Payment Reference -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="posPaymentRef" class="form-label small fw-semibold text-secondary mb-0">
+              4. Payment Reference
+            </label>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Payment channel">
+              <button type="button" class="btn btn-outline-secondary active" data-pay-prefix="POS">POS</button>
+              <button type="button" class="btn btn-outline-secondary" data-pay-prefix="TRF">Transfer</button>
+              <button type="button" class="btn btn-outline-secondary" data-pay-prefix="CSH">Cash</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <input
+              type="text"
+              id="posPaymentRef"
+              name="payment_ref"
+              class="form-control font-mono-code"
+              required
+              placeholder="e.g. POS-261119-A4F9"
+            />
+            <button type="button" id="posGenRefBtn" class="btn btn-outline-secondary" title="Generate Reference">
+              <i class="bi bi-arrow-repeat"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="p-3 rounded mb-3" style="background-color: #F7F9FC; border: 1px solid var(--uiv-border);">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">Gross Subtotal</span>
+            <span id="posGrossTotal" class="fw-semibold tabular-nums">₦0.00</span>
+          </div>
+          <div class="d-flex justify-content-between small mb-2">
+            <span class="text-muted">Loyalty Discount</span>
+            <span id="posDiscountTotal" class="fw-semibold text-success tabular-nums">-₦0.00</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+            <span class="fw-bold" style="color: var(--uiv-navy);">Net Amount Payable</span>
+            <span id="posNetTotal" class="fs-4 fw-bold tabular-nums" style="color: var(--uiv-navy);">₦0.00</span>
+          </div>
+          <div class="d-flex justify-content-between small mt-1">
+            <span class="text-muted">Points Earned (1% of Net)</span>
+            <span id="posEstimatedEarn" class="fw-semibold text-primary tabular-nums">+0 pts</span>
+          </div>
+        </div>
+
+        <button type="submit" id="posSubmitBtn" class="btn btn-uiv-confirm w-100" disabled>
+          <i class="bi bi-check2-circle"></i> Complete Sale &amp; Generate Receipt
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script id="pos-customers-data" type="application/json">{{ customers_json|safe }}</script>
+<script id="pos-products-data" type="application/json">{{ products_json|safe }}</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'crm/js/pos.js' %}"></script>
+{% endblock %}

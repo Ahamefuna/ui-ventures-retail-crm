@@ -1,0 +1,249 @@
+{% extends "crm/base.html" %}
+{% load crm_tags %}
+
+{% block title %}RFM Customer Segmentation{% endblock %}
+
+{% block content %}
+<div class="uiv-page-header">
+  <div>
+    <h1 class="uiv-page-title">RFM Customer Segmentation</h1>
+    <p class="uiv-page-subtitle">
+      Quintile-based Recency, Frequency, and Monetary classification across {{ total_segmented }} active customers.
+      {% if last_updated %}Last updated {{ last_updated|date:"d M Y, H:i" }}.{% endif %}
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <form method="post" action="{% url 'crm:rfm_recompute' %}" data-loading-text="Recomputing...">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-uiv-primary">
+        <i class="bi bi-arrow-clockwise"></i> Recompute RFM Scores
+      </button>
+    </form>
+    <button type="button" class="btn btn-uiv-confirm" data-bs-toggle="modal" data-bs-target="#dispatchAlertModal">
+      <i class="bi bi-megaphone"></i> Dispatch Retention Alert
+    </button>
+  </div>
+</div>
+
+<!-- 4 Tier Summary Cards -->
+<div class="row g-3 mb-4">
+  {% for card in tier_cards %}
+    <div class="col-12 col-sm-6 col-xl-3">
+      <a href="{% url 'crm:rfm' %}?tier={{ card.label|urlencode }}" class="text-decoration-none">
+        <div class="uiv-kpi-card {% if card.slug == 'champions' %}kpi-accent-green{% elif card.slug == 'loyal' %}kpi-accent-steel{% elif card.slug == 'potential' %}kpi-accent-amber{% else %}kpi-accent-crimson{% endif %} {% if selected_tier == card.label %}border-primary{% endif %}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="uiv-badge {{ card.label|tier_badge_class }}">{{ card.label }}</span>
+            <span class="small fw-semibold text-muted tabular-nums">{{ card.share }}%</span>
+          </div>
+          <div class="uiv-kpi-value">{{ card.count }}</div>
+          <div class="uiv-progress my-2">
+            <div
+              class="h-100"
+              style="width: {{ card.share }}%; background-color: {% if card.slug == 'champions' %}var(--uiv-green){% elif card.slug == 'loyal' %}var(--uiv-steel){% elif card.slug == 'potential' %}var(--uiv-amber){% else %}var(--uiv-crimson){% endif %};"
+            ></div>
+          </div>
+          <div class="small fw-semibold text-dark tabular-nums">Spend: {{ card.spend|naira_int }}</div>
+          <div class="uiv-kpi-meta mt-1">{{ card.rule }}</div>
+        </div>
+      </a>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Filter Bar -->
+<div class="uiv-card mb-4">
+  <div class="uiv-card-body">
+    <form method="get" action="{% url 'crm:rfm' %}" class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label for="rfmSearch" class="form-label small fw-semibold text-secondary">Search Customer</label>
+        <input
+          type="text"
+          id="rfmSearch"
+          name="q"
+          value="{{ query }}"
+          class="form-control"
+          placeholder="Customer name, code, or phone..."
+        />
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="rfmTierFilter" class="form-label small fw-semibold text-secondary">Retention Tier</label>
+        <select id="rfmTierFilter" name="tier" class="form-select">
+          <option value="">All RFM Tiers</option>
+          {% for val, label in tier_choices %}
+            <option value="{{ val }}" {% if selected_tier == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-uiv-primary flex-grow-1">Apply</button>
+        <a href="{% url 'crm:rfm' %}" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+        <a href="{% url 'crm:export_rfm_csv' %}" class="btn btn-outline-success" title="Export RFM CSV">
+          <i class="bi bi-download"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Quintile Matrix Table -->
+<div class="uiv-card mb-4">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">RFM Quintile Matrix</h2>
+    <span class="small text-muted">{{ page_obj.paginator.count }} customer{{ page_obj.paginator.count|pluralize }}</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th class="text-end">Recency</th>
+          <th class="text-end">Freq.</th>
+          <th class="text-end">Monetary</th>
+          <th class="text-center">R</th>
+          <th class="text-center">F</th>
+          <th class="text-center">M</th>
+          <th class="text-center">Code</th>
+          <th>Tier</th>
+          <th>Recommended Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for seg in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'crm:customer_detail' seg.customer.id %}" class="fw-semibold text-decoration-none text-dark">
+                {{ seg.customer.full_name }}
+              </a>
+              <div class="small text-muted">{{ seg.customer.cust_code }} &middot; {{ seg.customer.category }}</div>
+            </td>
+            <td class="text-end tabular-nums">{{ seg.recency_days }}d</td>
+            <td class="text-end tabular-nums">{{ seg.frequency_count }}</td>
+            <td class="text-end fw-semibold tabular-nums">{{ seg.monetary_total|naira }}</td>
+            <td class="text-center"><span class="rfm-score-pill {% if seg.r_score >= 4 %}rfm-score-high{% elif seg.r_score == 3 %}rfm-score-mid{% else %}rfm-score-low{% endif %}">{{ seg.r_score }}</span></td>
+            <td class="text-center"><span class="rfm-score-pill {% if seg.f_score >= 4 %}rfm-score-high{% elif seg.f_score == 3 %}rfm-score-mid{% else %}rfm-score-low{% endif %}">{{ seg.f_score }}</span></td>
+            <td class="text-center"><span class="rfm-score-pill {% if seg.m_score >= 4 %}rfm-score-high{% elif seg.m_score == 3 %}rfm-score-mid{% else %}rfm-score-low{% endif %}">{{ seg.m_score }}</span></td>
+            <td class="text-center"><span class="rfm-code-chip">{{ seg.rfm_code }}</span></td>
+            <td><span class="uiv-badge {{ seg.tier_label|tier_badge_class }}">{{ seg.tier_label }}</span></td>
+            <td class="small text-muted" style="max-width: 260px;">{{ seg.recommended_action }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="10" class="text-center text-muted py-5">No RFM segments available. Click "Recompute RFM Scores" to generate scores.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="uiv-card-body border-top d-flex justify-content-between align-items-center">
+      <span class="small text-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&tier={{ selected_tier|urlencode }}&q={{ query }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&tier={{ selected_tier|urlencode }}&q={{ query }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Dispatched Retention Campaign History -->
+<div class="uiv-card">
+  <div class="uiv-card-header">
+    <h2 class="uiv-card-title">Dispatched Retention Campaigns</h2>
+    <span class="small text-muted">Audit Trail</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table uiv-table">
+      <thead>
+        <tr>
+          <th>Date &amp; Time</th>
+          <th>Target Tier</th>
+          <th class="text-end">Recipients</th>
+          <th>Dispatched By</th>
+          <th>Campaign Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in recent_alerts %}
+          <tr>
+            <td class="small text-muted tabular-nums text-nowrap">{{ entry.timestamp }}</td>
+            <td><span class="uiv-badge {{ entry.tier|tier_badge_class }}">{{ entry.tier }}</span></td>
+            <td class="text-end fw-semibold tabular-nums">{{ entry.recipients }}</td>
+            <td class="small text-muted">{{ entry.dispatched_by }}</td>
+            <td class="small">{{ entry.message }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4 small">No retention alerts have been dispatched yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Dispatch Retention Alert Modal -->
+<div class="modal fade" id="dispatchAlertModal" tabindex="-1" aria-labelledby="dispatchAlertModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crm:rfm_dispatch_alert' %}" data-loading-text="Dispatching...">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="dispatchAlertModalLabel" style="color: var(--uiv-navy);">
+            Dispatch Retention Campaign
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">
+            Select a target RFM tier and enter the retention message to queue and record in the campaign audit trail.
+          </p>
+          <div class="mb-3">
+            <label for="alertTierSelect" class="form-label small fw-semibold">Target RFM Tier</label>
+            <select id="alertTierSelect" name="tier_label" class="form-select" required>
+              {% for val, label in tier_choices %}
+                <option value="{{ val }}" {% if selected_tier == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="campaignMessage" class="form-label small fw-semibold mb-0">Message Content</label>
+              <button type="button" id="useRecommendedTemplateBtn" class="btn btn-link btn-sm p-0 text-decoration-none">
+                Insert default text
+              </button>
+            </div>
+            <textarea
+              id="campaignMessage"
+              name="campaign_message"
+              class="form-control"
+              rows="3"
+              placeholder="Enter notification message for customers in this tier..."
+              required
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-uiv-confirm">Dispatch Alert</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const tierTemplates = {{ recommended_actions_json|default:"{}"|safe }};
+  const tierSelect = document.getElementById("alertTierSelect");
+  const msgArea = document.getElementById("campaignMessage");
+  const useTemplateBtn = document.getElementById("useRecommendedTemplateBtn");
+  if (useTemplateBtn && tierSelect && msgArea) {
+    useTemplateBtn.addEventListener("click", () => {
+      msgArea.value = tierTemplates[tierSelect.value] || "";
+    });
+  }
+</script>
+{% endblock %}
