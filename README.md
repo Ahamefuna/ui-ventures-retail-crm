@@ -91,3 +91,14 @@ Execute the full `pytest` unit and integration suite:
 pytest -v
 ```
 Tests verify atomic POS settlement and rollback, 1% loyalty accrual, 50% redemption cap enforcement, quintile RFM scoring and tier rules, role-based access control (403 enforcement), and the support ticket lifecycle.
+
+---
+
+## Cloud Deployment (Render)
+
+The repository includes `render.yaml`, `build.sh`, `Procfile`, `gunicorn`, and `whitenoise` for one-click deployment on Render:
+
+1. Open: `https://render.com/deploy?repo=https://github.com/Ahamefuna/ui-ventures-retail-crm`
+2. Sign in to Render with your GitHub account and click **Apply**.
+3. Render automatically installs dependencies, collects static assets, applies migrations, seeds the dataset, and exposes a public HTTPS link (`https://ui-ventures-retail-crm.onrender.com`).
+
