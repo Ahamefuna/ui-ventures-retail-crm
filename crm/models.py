@@ -324,7 +324,7 @@ class RFMSegment(models.Model):
 
     RECOMMENDED_ACTIONS = {
         TierLabel.CHAMPIONS: "Reward with VIP bookshop preview, priority bakery orders, and exclusive loyalty bonus.",
-        TierLabel.LOYAL: "Offer semester stationery bundles and tiered referral incentives to elevate to Champions.",
+        TierLabel.LOYAL: "Offer semester stationery bundles and tiered referral incentives to grow them into Champions.",
         TierLabel.POTENTIAL: "Send targeted welcome-back discount coupons and highlight point redemption benefits.",
         TierLabel.AT_RISK: "Dispatch win-back retention alert with time-limited bonus points on next campus visit.",
     }
