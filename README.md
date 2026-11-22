@@ -1,84 +1,121 @@
 <div align="center">
   <img src="crm/static/crm/img/ui_crest.png" alt="University of Ibadan Coat of Arms" width="84" />
-  <h1>UI Ventures Retail CRM &amp; RFM Analytics System</h1>
+  <h1>UI Ventures Retail CRM System</h1>
   <p>
-    <strong>Department of Computer Science, University of Ibadan</strong><br />
-    Final Year Software Implementation Project (Group 22)
+    <strong>Customer Relationship Management System for a Retail Store</strong><br />
+    <em>Case Study: UI Ventures Limited, University of Ibadan</em>
   </p>
   <p>
-    Python 3.11+ &middot; Django 5.2 &middot; MySQL 8.0 / SQLite &middot; Bootstrap 5 &middot; Chart.js &middot; pandas &middot; pytest
+    <strong>CSC 476 (Research Methods in Computer Science) &middot; Group 22 (2025/2026 Session)</strong><br />
+    Department of Computer Science, Faculty of Science, University of Ibadan
   </p>
   <p>
-    <strong>Live Application:</strong> <a href="https://ui-ventures-retail-crm.vercel.app/login/">https://ui-ventures-retail-crm.vercel.app</a>
+    <strong>Live Website:</strong> <a href="https://ui-ventures-retail-crm.vercel.app/login/">https://ui-ventures-retail-crm.vercel.app/login/</a>
   </p>
 </div>
 
 ---
 
-## 1. Project Overview
+## 1. Live Application & Login Guide
 
-The **UI Ventures Retail CRM System** is a full-stack web application developed for the retail operations of **UI Ventures Limited, University of Ibadan** (covering the Campus Bookshop, Stationery, Bakery, Beverages, and Consumables outlets).
+The web application is hosted live on Vercel and pre-loaded with the evaluation dataset (`420` campus customers, `85` UI Ventures retail items, `1,850` itemized receipts, `420` RFM customer classifications, and `15` support tickets). No local installation is needed to test it.
 
-The application centralizes customer registration, Point-of-Sale (POS) transaction settlement, loyalty point accrual and redemption, quintile-based **Recency-Frequency-Monetary (RFM)** customer segmentation, customer support ticket tracking, and CSV reporting under role-based access control.
+### How to Test the Live Site
+1. Open the live login portal: **[https://ui-ventures-retail-crm.vercel.app/login/](https://ui-ventures-retail-crm.vercel.app/login/)**
+2. Sign in with any of the four role accounts in the table below (staff accounts accept either their email address or staff code).
+3. Use the left sidebar to inspect the modules available to that role, then click **Sign Out** to test another role and verify access restrictions.
+
+### Evaluation Login Accounts
+**Password for all accounts:** `Password123!`
+
+| Role | Email Address | Staff Code | Landing Page | What You Can Inspect |
+| :--- | :--- | :--- | :--- | :--- |
+| **Admin** | `admin@uiventures.ui.edu.ng` | `UIV-STF-001` | `/dashboard/` | Full access: KPI summary, monthly revenue chart, RFM matrix, customer directory, POS checkout, inventory, CSV reports, staff accounts, support tickets |
+| **Store Manager** | `manager@uiventures.ui.edu.ng` | `UIV-STF-002` | `/dashboard/` | Analytical dashboard, RFM recalculation and retention alerts, product catalog, CSV exports, POS, customers, support tickets (no `/staff/` access) |
+| **Sales Attendant** | `attendant@uiventures.ui.edu.ng` | `UIV-STF-003` | `/pos/` | Counter POS checkout cart, loyalty point redemption, printable receipts, customer lookup, support tickets (`/dashboard/`, `/rfm/`, and `/reports/` return HTTP 403) |
+| **Customer** | `student@ui.edu.ng` | — | `/my-portal/` | Personal loyalty point balance, purchase history, printable receipts, and personal support ticket submission and tracking |
 
 ---
 
-## 2. Live Access & Interface Preview
+## 2. Project Summary & Group 22 Details
 
-### Live Web Application (No Setup Required)
-The application is hosted live and pre-loaded with the seeded University of Ibadan retail dataset:
+Retail counters at **UI Ventures Limited, University of Ibadan** (covering the University Bookshop, Stationery, Bakery, Beverages, and Consumables units) serve returning students and staff every semester, yet daily sales are recorded anonymously without linking receipts to customer accounts, awarding loyalty points, grouping repeat shoppers, or tracking product complaints systematically.
 
-- **Live Portal:** **[https://ui-ventures-retail-crm.vercel.app/login/](https://ui-ventures-retail-crm.vercel.app/login/)**
-- **Demo Accounts** (Password for all accounts: **`Password123!`**):
-  - **Admin:** `admin@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-001`) -> Management Dashboard (`/dashboard/`)
-  - **Store Manager:** `manager@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-002`) -> Management Dashboard (`/dashboard/`)
-  - **Sales Attendant:** `attendant@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-003`) -> POS Terminal (`/pos/`)
-  - **Customer:** `student@ui.edu.ng` -> Customer Self-Service Portal (`/my-portal/`)
+This Django web application addresses those four operational gaps by combining:
+- Centralized campus customer registration and purchase history lookup
+- Counter Point-of-Sale (POS) checkout with atomic stock updates and itemized receipts
+- Rule-based loyalty point accrual (`1 point` per `₦100` net spend) and redemption (`1 point = ₦10`, capped at `50%` of the gross bill)
+- Automated quintile-based **Recency, Frequency, and Monetary (RFM)** customer segmentation using `pandas`
+- Status-tracked customer support tickets (`Open` -> `In_Progress` -> `Resolved`) and CSV reporting
 
-### Additional Online Environments
-- **GitHub Codespaces:** Open **[Launch in GitHub Codespaces](https://codespaces.new/Ahamefuna/ui-ventures-retail-crm)** using [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
-- **Render Cloud Deployment:** Deploy via **[Deploy on Render](https://render.com/deploy?repo=https://github.com/Ahamefuna/ui-ventures-retail-crm)** using [`render.yaml`](render.yaml) and [`build.sh`](build.sh).
+**Course:** CSC 476 (Research Methods in Computer Science)  
+**Lecturer / Supervisor:** Prof. B. F. Oladejo  
+**Technology Stack:** Python 3.11+, Django 5.2, MySQL 8.0 (SQLite local/demo fallback), Bootstrap 5, Chart.js, pandas, pytest
 
-### Application Screenshots
+### Group 22 Members
 
-#### Sign-In Portal
+| S/N | Full Name | Matric. No. | Role |
+| :---: | :--- | :---: | :--- |
+| 1 | **ONYISHI, Christian** | `E051546` | Team Leader |
+| 2 | MAKANJUOLA, Samuel | `E051547` | Group Member |
+| 3 | OLORUNTOLA, Oluwatobiloba | `E051549` | Group Member |
+| 4 | OLOYEDE, Mubarak | `E051551` | Group Member |
+| 5 | AYORINDE, Omolayo | `E051552` | Group Member |
+
+---
+
+## 3. Application Screenshots
+
+### 3.1 Role-Based Login Portal (`/login/`)
+Staff sign in with their institutional email or staff code; registered customers sign in with their email address and are routed automatically to their permitted workspace.
+
 ![UI Ventures Retail CRM Login Portal](docs/screenshots/01_login_portal.png)
 
-#### Management Dashboard (KPIs, Monthly Revenue & RFM Distribution)
+### 3.2 Management Dashboard (`/dashboard/`)
+Displays live totals for registered customers, net revenue, active loyalty points, and open support tickets alongside a monthly revenue bar chart and RFM tier distribution chart.
+
 ![Management Dashboard](docs/screenshots/02_management_dashboard.png)
 
-#### Point of Sale (POS) Checkout & Loyalty Point Redemption
+### 3.3 Counter POS Checkout & Loyalty Redemption (`/pos/`)
+Allows attendants to select a registered shopper, add retail items to the cart, apply loyalty point discounts within the 50% gross cap, deduct inventory, and issue a printable receipt.
+
 ![POS Checkout Terminal](docs/screenshots/03_pos_checkout.png)
 
-#### RFM Customer Segmentation & Retention Matrix
+### 3.4 RFM Customer Segmentation Matrix (`/rfm/`)
+Groups customers into Champions, Loyal Customers, Potential Loyalists, and At-Risk / Dormant tiers based on quintile scores (`1-5`) and logs targeted retention alerts.
+
 ![RFM Customer Segmentation](docs/screenshots/04_rfm_segmentation.png)
 
-#### Customer Profile, RFM Breakdown & Loyalty Ledger
+### 3.5 Customer Profile & Loyalty Ledger (`/customers/<id>/`)
+Shows a shopper's personal details, current RFM scores, itemized transaction receipts, and the full immutable ledger of earned and redeemed loyalty points.
+
 ![Customer Profile](docs/screenshots/05_customer_profile.png)
 
-#### Customer Self-Service Portal (`student@ui.edu.ng`)
+### 3.6 Customer Self-Service Portal (`/my-portal/`)
+Lets registered University of Ibadan students and staff check their loyalty balance, view past receipts, and submit or monitor support tickets.
+
 ![Customer Self-Service Portal](docs/screenshots/06_customer_portal.png)
 
 ---
 
-## 3. System Architecture
+## 4. System Architecture & 3NF Database Design
 
-The application follows a three-tier client-server architecture built with Django's Model-View-Template (MVT) pattern:
+The application follows a three-tier client-server design built on Django's Model-View-Template (MVT) architecture:
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation Tier (Browser)"]
+    subgraph Presentation["Tier 1: Presentation Layer (Browser)"]
         UI["HTML5 / CSS3 / Bootstrap 5\nVanilla JS POS Terminal & Chart.js"]
     end
 
-    subgraph Application["Application & Analytics Tier (Django 5.2)"]
-        AUTH["Authentication & RBAC\n(Email / Staff Code + 403 Guards)"]
+    subgraph Application["Tier 2: Application & Analytics Layer (Django 5.2)"]
+        AUTH["Authentication & RBAC\n(Email / Staff Code + HTTP 403 Guards)"]
         VIEWS["Module Views & Forms\n(Dashboard, POS, Customers, Tickets, Reports)"]
-        SERVICES["Core Domain Services (crm/services.py)\nPOS Settlement | Loyalty Engine | Pandas RFM Engine"]
+        SERVICES["Core Services (crm/services.py)\nPOS Settlement | Loyalty Rules | Pandas RFM Engine"]
     end
 
-    subgraph Data["Data Persistence Tier (3NF Relational Schema)"]
-        DB[("MySQL 8.0 Primary\n(SQLite 3 Local Fallback)")]
+    subgraph Data["Tier 3: Data Persistence Layer (3NF Schema)"]
+        DB[("MySQL 8.0 Primary\n(SQLite 3 Local / Demo Fallback)")]
     end
 
     UI <--> AUTH
@@ -87,22 +124,18 @@ flowchart TB
     SERVICES <--> DB
 ```
 
----
+The relational schema in [`crm/models.py`](crm/models.py) is normalized to Third Normal Form (3NF) across 8 tables:
 
-## 4. Relational Database Schema (3NF)
-
-The database is normalized to Third Normal Form across **8 relational tables** defined in [`crm/models.py`](crm/models.py), enforcing foreign-key constraints, unique identifiers, and composite indexes:
-
-| Table | Model | Purpose & Key Constraints |
+| Table | Model | Key Columns & Constraints |
 | :--- | :--- | :--- |
-| `crm_user` | `User` | Custom `AbstractUser` (`email` unique login ID, nullable unique `staff_code`, `role` in `Admin`, `Manager`, `Attendant`, `Customer`) |
-| `crm_customer` | `Customer` | Campus customer registry (`cust_code` e.g. `UIV-001`, unique `phone`, `category`, live `loyalty_points`, optional 1:1 `user`) |
-| `crm_product` | `Product` | Retail catalog (`sku_code`, `category`, `unit_price`, `stock_qty`, `reorder_level`) |
-| `crm_transaction` | `Transaction` | Completed POS headers (`receipt_no`, `customer`, `attended_by`, `gross_amount`, `discount_amount`, `net_amount`, `payment_ref`) |
-| `crm_transaction_item` | `TransactionItem` | Itemized line records preserving `unit_price_at_sale`, `quantity`, and `line_subtotal` |
-| `crm_loyalty_ledger` | `LoyaltyLedger` | Immutable audit log of `EARN`, `REDEEM`, and `ADJUST` point deltas with running `balance_after` |
-| `crm_rfm_segment` | `RFMSegment` | 1:1 customer RFM metrics (`recency_days`, `frequency_count`, `monetary_total`, `r/f/m_score`, `tier_label`) |
-| `crm_support_ticket` | `SupportTicket` | Customer inquiries, loyalty disputes, damaged items, and feedback (`Open` -> `In_Progress` -> `Resolved`) |
+| `crm_user` | `User` | Custom `AbstractUser` with unique `email`, nullable unique `staff_code`, and `role` (`Admin`, `Manager`, `Attendant`, `Customer`) |
+| `crm_customer` | `Customer` | Unique `cust_code` (e.g. `UIV-001`), unique `phone`, campus `category`, live `loyalty_points`, optional 1:1 `user` link |
+| `crm_product` | `Product` | Unique `sku_code`, `category`, `unit_price`, `stock_qty`, `reorder_level` |
+| `crm_transaction` | `Transaction` | Unique `receipt_no`, `customer`, `attended_by`, `gross_amount`, `discount_amount`, `net_amount`, `payment_ref` |
+| `crm_transaction_item` | `TransactionItem` | Line items preserving `unit_price_at_sale`, `quantity`, and `line_subtotal` |
+| `crm_loyalty_ledger` | `LoyaltyLedger` | Immutable audit entries (`EARN`, `REDEEM`, `ADJUST`) recording `points_delta` and `balance_after` |
+| `crm_rfm_segment` | `RFMSegment` | 1:1 computed metrics (`recency_days`, `frequency_count`, `monetary_total`, `r/f/m_score`, `tier_label`) |
+| `crm_support_ticket` | `SupportTicket` | Unique `ticket_code`, category, subject, status (`Open`, `In_Progress`, `Resolved`), `assigned_to`, `resolution_note` |
 
 ```mermaid
 erDiagram
@@ -120,35 +153,33 @@ erDiagram
 
 ---
 
-## 5. Core Business Logic & Algorithms
+## 5. Core Business Logic (`crm/services.py`)
 
-Core retail and analytical logic is implemented in [`crm/services.py`](crm/services.py):
+### 5.1 Atomic POS Checkout & Loyalty Rules (`settle_retail_transaction`)
+Executed inside `@transaction.atomic` with `select_for_update()` row locking:
+- Validates available stock across all cart items and rolls back completely if any item has insufficient stock.
+- Values redeemed points at `₦10.00` per point, limited by both the customer's balance and a maximum of `50%` of `gross_amount`.
+- Credits new loyalty points at `1%` of `net_amount` (`1 point` per `₦100` spent, floored to an integer).
+- Writes separate immutable `REDEEM` and `EARN` rows in `LoyaltyLedger` whenever a transaction includes both.
 
-### A. Atomic POS Settlement & Loyalty Engine (`settle_retail_transaction`)
-Wrapped in `@transaction.atomic` with row-level locking (`select_for_update()`):
-- **Stock Validation:** Aggregates duplicate cart SKUs, verifies `stock_qty >= quantity`, and rolls back the entire transaction if stock is insufficient.
-- **Loyalty Point Redemption:** `1 point = ₦10.00` discount. Redemptions are bounded by both the customer's available balance and a **50% cap on `gross_amount`**.
-- **Loyalty Point Accrual:** `POINT_EARN_RATE = 0.01` (1 loyalty point per `₦100` of net spend, floored to an integer).
-- **Ledger Integrity:** Records separate immutable `REDEEM` and `EARN` entries in `LoyaltyLedger` whenever both occur on the same sale.
+### 5.2 Quintile RFM Segmentation (`compute_rfm_segments`)
+Uses `pandas` over all customers with completed transactions:
+- Computes Recency (`recency_days`), Frequency (`frequency_count`), and Monetary total (`monetary_total`).
+- Assigns quintile scores (`1` to `5`) using `pd.qcut(series.rank(method="first"), 5)` with reversed labels `[5, 4, 3, 2, 1]` for Recency and ascending labels `[1, 2, 3, 4, 5]` for Frequency and Monetary.
+- Maps each customer to a retention tier:
 
-### B. Quintile RFM Segmentation (`compute_rfm_segments`)
-Implemented using `pandas` over all customers with at least one completed transaction:
-- Calculates raw Recency (`recency_days`), Frequency (`frequency_count`), and Monetary (`monetary_total`).
-- Assigns quintile scores (`1-5`) via `pd.qcut(series.rank(method="first"), 5)` with reversed Recency labels `[5, 4, 3, 2, 1]` and ascending `[1, 2, 3, 4, 5]` for Frequency and Monetary.
-- Persists retention tiers using `RFMSegment.objects.update_or_create(...)`:
-
-| Retention Tier | Classification Rule | Operational Action |
+| Retention Tier | Rule | Recommended Action |
 | :--- | :--- | :--- |
-| **Champions** | `R >= 4 and F >= 4 and M >= 4` | VIP bookshop previews, priority bakery orders, exclusive bonus rewards |
+| **Champions** | `R >= 4 and F >= 4 and M >= 4` | VIP bookshop previews, priority bakery orders, bonus point rewards |
 | **Loyal Customers** | `R >= 3 and F >= 3 and M >= 3` | Semester stationery bundles and referral incentives |
-| **Potential Loyalists** | `R >= 3 and F <= 2` | Welcome-back coupons highlighting point redemption benefits |
-| **At-Risk / Dormant** | All remaining customers | Win-back retention alerts with time-limited bonus points |
+| **Potential Loyalists** | `R >= 3 and F <= 2` | Welcome-back coupons highlighting loyalty point savings |
+| **At-Risk / Dormant** | All other customers | Win-back retention alerts with time-limited bonus points |
 
 ---
 
-## 6. Role-Based Access Control (RBAC)
+## 6. Role-Based Access Control (`crm/decorators.py`)
 
-Enforced in [`crm/decorators.py`](crm/decorators.py) (`HTTP 403 Forbidden` for unauthorized authenticated users; redirect to `/login/` for unauthenticated requests):
+Unauthorized authenticated requests receive a branded `HTTP 403 Forbidden` response; unauthenticated requests redirect to `/login/`.
 
 | Route | Module | Admin | Manager | Attendant | Customer |
 | :--- | :--- | :---: | :---: | :---: | :---: |
@@ -165,7 +196,7 @@ Enforced in [`crm/decorators.py`](crm/decorators.py) (`HTTP 403 Forbidden` for u
 
 ---
 
-## 7. Project Structure
+## 7. Repository Structure
 
 ```text
 .
@@ -173,105 +204,64 @@ Enforced in [`crm/decorators.py`](crm/decorators.py) (`HTTP 403 Forbidden` for u
 ├── requirements.txt
 ├── pytest.ini
 ├── .env.example
-├── render.yaml / build.sh / Procfile
-├── .devcontainer/devcontainer.json
-├── docs/screenshots/
+├── vercel.json                        # Live Vercel WSGI deployment config
+├── render.yaml / build.sh / Procfile  # Alternative Render / WSGI deployment files
+├── .devcontainer/devcontainer.json    # Optional GitHub Codespaces setup
+├── docs/screenshots/                  # Captured interface screenshots
 ├── uiventures_crm/
-│   ├── settings.py          # MySQL 8.0 primary config + SQLite fallback + WhiteNoise
+│   ├── settings.py                    # MySQL 8.0 primary config + SQLite fallback + Vercel settings
 │   ├── urls.py
 │   └── wsgi.py
 └── crm/
-    ├── models.py            # 8-table 3NF relational schema
-    ├── services.py          # Atomic POS engine, loyalty rules, pandas RFM engine
-    ├── views.py             # Views for all 9 modules + CSV exports
-    ├── forms.py             # Validation forms for auth, customers, products, staff, tickets
-    ├── backends.py          # Dual login backend (Email or Staff Code)
-    ├── decorators.py        # Role-based access control (403 enforcement)
+    ├── models.py                      # 8-table 3NF relational schema
+    ├── services.py                    # Atomic POS engine, loyalty rules, pandas RFM engine
+    ├── views.py                       # Views for all modules and CSV exports
+    ├── forms.py                       # Input validation forms
+    ├── backends.py                    # Email or Staff Code login backend
+    ├── decorators.py                  # Role-based access control guards
     ├── context_processors.py
+    ├── data/demo.sqlite3              # Pre-seeded demo database snapshot for live hosting
     ├── templatetags/crm_tags.py
     ├── management/commands/seed_uiventures.py
-    ├── static/crm/          # Institutional stylesheet, UI crest asset, POS terminal JS
-    ├── templates/crm/       # Responsive Bootstrap 5 templates & printable receipt
-    └── tests/               # Pytest unit & integration test suite (14 tests)
+    ├── static/crm/                    # Stylesheet, University of Ibadan crest, POS JS
+    ├── templates/crm/                 # Responsive Bootstrap 5 templates and receipt view
+    └── tests/                         # Automated pytest suite (14 tests)
 ```
 
 ---
 
-## 8. Local Setup & Installation
+## 8. Local Setup & Automated Tests
 
-### Prerequisites
-- Python 3.11+
-- Optional: MySQL 8.0 (defaults to local SQLite when `USE_MYSQL=False`)
+To run the project locally on any machine with Python 3.11+:
 
-### Installation Steps
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Ahamefuna/ui-ventures-retail-crm.git
 cd ui-ventures-retail-crm
 
-# 2. Create and activate a virtual environment
 python -m venv venv
 # Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
 # macOS / Linux:
 source venv/bin/activate
 
-# 3. Install dependencies
 pip install -r requirements.txt
-
-# 4. (Optional) Configure MySQL 8.0
-# Copy .env.example to .env and set USE_MYSQL=True with your DB credentials
-
-# 5. Run migrations and seed the dataset
 python manage.py migrate
 python manage.py seed_uiventures
-
-# 6. Start the development server
 python manage.py runserver
 ```
 
-Open **`http://127.0.0.1:8000/login/`** in your browser.
+Then open `http://127.0.0.1:8000/login/` in your browser. To connect MySQL 8.0 instead of the default SQLite database, copy `.env.example` to `.env`, set `USE_MYSQL=True`, and fill in your MySQL credentials.
 
----
-
-## 9. Seeded Dataset & Demo Accounts
-
-Running `python manage.py seed_uiventures` (idempotent) populates University of Ibadan retail data:
-- **420** registered campus customers (`UG`, `PG`, `Academic`, `Non-Teaching`, `Visitor`)
-- **85** UI Ventures retail products (`Books`, `Stationery`, `Bakery`, `Beverages`, `Consumables`)
-- **1,850** itemized transactions across the past 6 months (~`₦5.57M` net revenue) with `2,147` `LoyaltyLedger` records
-- **420** computed `RFMSegment` classifications across all four retention tiers
-- **15** `SupportTicket` records spanning `Open`, `In_Progress`, and `Resolved` states
-
-### Evaluation Credentials
-Password for all demo accounts: **`Password123!`**
-
-| Role | Email Address | Staff Code | Default Landing Route |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@uiventures.ui.edu.ng` | `UIV-STF-001` | `/dashboard/` |
-| **Store Manager** | `manager@uiventures.ui.edu.ng` | `UIV-STF-002` | `/dashboard/` |
-| **Sales Attendant** | `attendant@uiventures.ui.edu.ng` | `UIV-STF-003` | `/pos/` |
-| **Customer** | `student@ui.edu.ng` | N/A | `/my-portal/` |
-
----
-
-## 10. Automated Testing
-
-Run the unit and integration test suite with `pytest`:
+### Automated Verification (`pytest`)
+Run the full unit and integration test suite with:
 
 ```bash
 pytest -v
 ```
 
-| Test Module | Verification Scope | Status |
+| Test File | Scope Verified | Result |
 | :--- | :--- | :---: |
-| [`crm/tests/test_pos_loyalty.py`](crm/tests/test_pos_loyalty.py) | Atomic checkout, stock deduction & rollback, 1% accrual, 50% redemption cap, balance limits, printable receipt | 6 Passed |
-| [`crm/tests/test_rfm.py`](crm/tests/test_rfm.py) | Quintile scoring (`R` reversed, `F`/`M` ascending), strict 4-tier classification, retention alert dispatch | 2 Passed |
-| [`crm/tests/test_rbac.py`](crm/tests/test_rbac.py) | Dual Email/Staff-Code login and 403 enforcement across Admin, Manager, Attendant, and Customer roles | 4 Passed |
-| [`crm/tests/test_tickets.py`](crm/tests/test_tickets.py) | Ticket lifecycle (`Open` -> `In_Progress` -> `Resolved`) and customer ticket isolation | 2 Passed |
-
----
-
-## 11. Cloud Deployment
-
-The application is deployed live on **Vercel** ([`vercel.json`](vercel.json)) at **[https://ui-ventures-retail-crm.vercel.app](https://ui-ventures-retail-crm.vercel.app)**. Production WSGI deployment files ([`render.yaml`](render.yaml), [`build.sh`](build.sh), and [`Procfile`](Procfile)) configured with `gunicorn` and `whitenoise` are also included for Render or any standard WSGI server.
+| [`crm/tests/test_pos_loyalty.py`](crm/tests/test_pos_loyalty.py) | Atomic checkout, stock deduction and rollback, 1% point accrual, 50% redemption cap, balance validation, receipt rendering | 6 Passed |
+| [`crm/tests/test_rfm.py`](crm/tests/test_rfm.py) | Quintile scoring (`R` reversed, `F`/`M` ascending), 4-tier classification, retention alert logging | 2 Passed |
+| [`crm/tests/test_rbac.py`](crm/tests/test_rbac.py) | Dual Email/Staff-Code login and HTTP 403 enforcement across all four user roles | 4 Passed |
+| [`crm/tests/test_tickets.py`](crm/tests/test_tickets.py) | Ticket lifecycle (`Open` -> `In_Progress` -> `Resolved`) and per-customer ticket isolation | 2 Passed |
