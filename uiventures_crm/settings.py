@@ -1,14 +1,17 @@
 """Django settings for UI Ventures Retail CRM System."""
 
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+IS_VERCEL = bool(os.environ.get("VERCEL"))
 
 env = environ.Env(
-    DEBUG=(bool, True),
+    DEBUG=(bool, not IS_VERCEL),
     USE_MYSQL=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "testserver"]),
 )
@@ -33,7 +36,21 @@ if RENDER_EXTERNAL_HOSTNAME:
     if render_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(render_origin)
 
-if not DEBUG:
+if IS_VERCEL:
+    if ".vercel.app" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(".vercel.app")
+    if "https://*.vercel.app" not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append("https://*.vercel.app")
+    for vercel_env_var in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+        vercel_host = os.environ.get(vercel_env_var)
+        if vercel_host:
+            if vercel_host not in ALLOWED_HOSTS:
+                ALLOWED_HOSTS.append(vercel_host)
+            origin = f"https://{vercel_host}"
+            if origin not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(origin)
+
+if not DEBUG or IS_VERCEL:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
@@ -78,7 +95,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "uiventures_crm.wsgi.application"
-ASGI_APPLICATION = "uiventures_crm.asgi.application"
+if not IS_VERCEL:
+    ASGI_APPLICATION = "uiventures_crm.asgi.application"
 
 USE_MYSQL = env("USE_MYSQL")
 
@@ -98,12 +116,30 @@ if USE_MYSQL:
         }
     }
 else:
+    if IS_VERCEL:
+        tmp_dir = Path(tempfile.gettempdir())
+        runtime_db = tmp_dir / "uiventures_crm.sqlite3"
+        seed_db = BASE_DIR / "crm" / "data" / "demo.sqlite3"
+        if not runtime_db.exists() and seed_db.exists():
+            tmp_copy = tmp_dir / f"uiventures_crm.{os.getpid()}.tmp"
+            shutil.copy2(seed_db, tmp_copy)
+            os.replace(tmp_copy, runtime_db)
+        sqlite_path = runtime_db
+    else:
+        sqlite_path = BASE_DIR / "db.sqlite3"
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": sqlite_path,
         }
     }
+
+if IS_VERCEL:
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    MESSAGE_STORAGE = "django.contrib.messages.storage.cookie.CookieStorage"
 
 AUTH_USER_MODEL = "crm.User"
 
@@ -131,7 +167,11 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if IS_VERCEL
+            else "whitenoise.storage.CompressedStaticFilesStorage"
+        ),
     },
 }
 
@@ -142,7 +182,7 @@ LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 # Ensure logs directory exists for retention campaign logging
-LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR = (Path(tempfile.gettempdir()) / "logs") if IS_VERCEL else (BASE_DIR / "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 LOGGING = {

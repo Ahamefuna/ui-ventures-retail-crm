@@ -1,0 +1,13 @@
+venv
+.venv
+__pycache__
+*.pyc
+.git
+.pytest_cache
+.env
+db.sqlite3
+logs
+staticfiles
+docs
+Group_22_Cited_Literature
+Group_22_Cited_Literature.zip

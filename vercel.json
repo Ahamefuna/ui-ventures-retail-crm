@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "ui-ventures-retail-crm": {
+      "root": ".",
+      "framework": "django",
+      "entrypoint": "uiventures_crm.wsgi:application",
+      "functions": {
+        "uiventures_crm/wsgi.py": {
+          "maxDuration": 60,
+          "includeFiles": "crm/data/demo.sqlite3"
+        }
+      }
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "ui-ventures-retail-crm"
+      }
+    }
+  ]
+}

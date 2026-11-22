@@ -8,6 +8,9 @@
   <p>
     Python 3.11+ &middot; Django 5.2 &middot; MySQL 8.0 / SQLite &middot; Bootstrap 5 &middot; Chart.js &middot; pandas &middot; pytest
   </p>
+  <p>
+    <strong>Live Application:</strong> <a href="https://ui-ventures-retail-crm.vercel.app/login/">https://ui-ventures-retail-crm.vercel.app</a>
+  </p>
 </div>
 
 ---
@@ -22,13 +25,19 @@ The application centralizes customer registration, Point-of-Sale (POS) transacti
 
 ## 2. Live Access & Interface Preview
 
-### Running the Application Online
-You can run and test the live application directly in a browser without installing Python locally:
+### Live Web Application (No Setup Required)
+The application is hosted live and pre-loaded with the seeded University of Ibadan retail dataset:
 
-- **GitHub Codespaces:** Open **[Launch in GitHub Codespaces](https://codespaces.new/Ahamefuna/ui-ventures-retail-crm)**. The included [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) installs dependencies, applies migrations, runs `seed_uiventures`, starts the Django server on port `8000`, and opens the site in your browser.
-- **Render Cloud Deployment:** Deploy a public HTTPS instance via **[Deploy on Render](https://render.com/deploy?repo=https://github.com/Ahamefuna/ui-ventures-retail-crm)** using [`render.yaml`](render.yaml) and [`build.sh`](build.sh).
+- **Live Portal:** **[https://ui-ventures-retail-crm.vercel.app/login/](https://ui-ventures-retail-crm.vercel.app/login/)**
+- **Demo Accounts** (Password for all accounts: **`Password123!`**):
+  - **Admin:** `admin@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-001`) -> Management Dashboard (`/dashboard/`)
+  - **Store Manager:** `manager@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-002`) -> Management Dashboard (`/dashboard/`)
+  - **Sales Attendant:** `attendant@uiventures.ui.edu.ng` (or Staff Code `UIV-STF-003`) -> POS Terminal (`/pos/`)
+  - **Customer:** `student@ui.edu.ng` -> Customer Self-Service Portal (`/my-portal/`)
 
-*(Sign in using any of the evaluation accounts in [Section 9](#9-seeded-dataset--demo-accounts) with password `Password123!`.)*
+### Additional Online Environments
+- **GitHub Codespaces:** Open **[Launch in GitHub Codespaces](https://codespaces.new/Ahamefuna/ui-ventures-retail-crm)** using [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json).
+- **Render Cloud Deployment:** Deploy via **[Deploy on Render](https://render.com/deploy?repo=https://github.com/Ahamefuna/ui-ventures-retail-crm)** using [`render.yaml`](render.yaml) and [`build.sh`](build.sh).
 
 ### Application Screenshots
 
@@ -265,4 +274,4 @@ pytest -v
 
 ## 11. Cloud Deployment
 
-Production deployment files ([`render.yaml`](render.yaml), [`build.sh`](build.sh), and [`Procfile`](Procfile)) configured with `gunicorn` and `whitenoise` are included for deployment to Render or any standard WSGI server.
+The application is deployed live on **Vercel** ([`vercel.json`](vercel.json)) at **[https://ui-ventures-retail-crm.vercel.app](https://ui-ventures-retail-crm.vercel.app)**. Production WSGI deployment files ([`render.yaml`](render.yaml), [`build.sh`](build.sh), and [`Procfile`](Procfile)) configured with `gunicorn` and `whitenoise` are also included for Render or any standard WSGI server.
